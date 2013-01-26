@@ -1,0 +1,162 @@
+* {
+        padding: 0;
+        margin: 0;
+
+}
+
+body {
+        overflow: hidden;
+}
+
+#canvas_rpg-parent {
+        position: relative;
+        width: 640px;
+        height: 480px;
+}
+
+#canvas_rpg {
+        position: absolute;
+        left: 0;
+        top: 0;
+}
+
+#header {
+        background: rgba(0, 0, 0, 0.5);
+        height: 22px;
+        width: 135px;
+        color: #fff;
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: 10;
+        -webkit-border-bottom-left-radius: 15px;
+}
+
+#bar_hp {
+        position: absolute;
+        width: 200px;
+        height: 15px;
+        border: 1px solid #fff;
+        top: 10px;
+        left: 10px;
+        opacity: .9;
+}
+
+#hp {
+        background: #bfd255; /* Old browsers */
+        background: -moz-linear-gradient(top, #bfd255 0%, #8eb92a 50%, #72aa00 51%, #9ecb2d 100%); /* FF3.6+ */
+        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#bfd255), color-stop(50%,#8eb92a), color-stop(51%,#72aa00), color-stop(100%,#9ecb2d)); /* Chrome,Safari4+ */
+        background: -webkit-linear-gradient(top, #bfd255 0%,#8eb92a 50%,#72aa00 51%,#9ecb2d 100%); /* Chrome10+,Safari5.1+ */
+        background: -o-linear-gradient(top, #bfd255 0%,#8eb92a 50%,#72aa00 51%,#9ecb2d 100%); /* Opera11.10+ */
+        background: -ms-linear-gradient(top, #bfd255 0%,#8eb92a 50%,#72aa00 51%,#9ecb2d 100%); /* IE10+ */
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bfd255', endColorstr='#9ecb2d',GradientType=0 ); /* IE6-9 */
+        background: linear-gradient(top, #bfd255 0%,#8eb92a 50%,#72aa00 51%,#9ecb2d 100%); /* W3C */
+        width: 200px;
+        height: 15px;
+}
+
+#hp-text {
+        color: #fff;
+
+}
+
+#gold {
+        background: url('images/coin.PNG') no-repeat left center;
+        float: left;
+        width: 55px;
+        padding-left: 20px;
+        margin-top: 1px;
+        margin-left: 10px;
+}
+
+#gold span {
+        font-weight: bold;
+        font-family: Arial;
+        font-size: 12px;
+}
+
+#sound, #option  {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        float: right;
+        margin-top: 3px;
+        margin-right: 8px;
+        
+}
+
+#option {
+        background: url('images/tool_16.png');
+}
+
+.sound-play {
+        background: url('images/sound_16.png');
+}
+
+.sound-mute {
+        background: url('images/sound_mute_16.png');
+}
+
+#options {
+        height: 300px;
+        width: 300px;
+        position: absolute;
+        display: none;
+        z-index: 10;
+        left: 320px;
+        top: 240px;
+        margin-top: -150px;
+        margin-left: -150px;
+}
+
+#canvas_rpg-parent {
+        width: 640px;
+        height: 480px;
+        position: relative;
+        
+}
+
+.window {
+        background: -moz-linear-gradient(top, rgba(252,255,244,0.85) 0%, rgba(223,229,215,0.85) 40%, rgba(179,190,173,0.85) 100%);
+        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(252,255,244,0.85)), color-stop(40%,rgba(223,229,215,0.85)), color-stop(100%,rgba(179,190,173,0.85)));
+        background: -webkit-linear-gradient(top, rgba(252,255,244,0.85) 0%,rgba(223,229,215,0.85) 40%,rgba(179,190,173,0.85) 100%);
+        background: -o-linear-gradient(top, rgba(252,255,244,0.85) 0%,rgba(223,229,215,0.85) 40%,rgba(179,190,173,0.85) 100%);
+        background: -ms-linear-gradient(top, rgba(252,255,244,0.85) 0%,rgba(223,229,215,0.85) 40%,rgba(179,190,173,0.85) 100%);
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#b3fcfff4', endColorstr='#b3b3bead',GradientType=0 );
+        background: linear-gradient(top, rgba(252,255,244,0.85) 0%,rgba(223,229,215,0.85) 40%,rgba(179,190,173,0.85) 100%);
+        border-radius: 10px;
+        border: 2px solid #eee;
+        box-shadow: 0 0 10px #000;
+        padding: 10px;
+        font-family: Arial;
+        font-size: 12px;
+        overflow-y: auto;
+        
+}
+
+.window h1 {
+        font-size:22px;
+        font-weight:normal;
+        font-variant:small-caps;
+        border-bottom: 1px solid #111;
+        margin-bottom: 10px;
+        color: #000;
+        padding: 10px;
+}
+
+.window ul {
+        margin-left: 15px;
+}
+
+.window legend {
+        font-weight: bold;
+}
+
+.window  fieldset {
+        padding: 10px;
+}        
+
+.window pre {
+        overflow: auto;
+        padding: 5px;
+}
