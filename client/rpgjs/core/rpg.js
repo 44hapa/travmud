@@ -1046,6 +1046,7 @@ Rpg.prototype = {
          If tile ID 10 is not fair but the 5 is. The player can still walk on it. Otherwise, the player will be blocked even if the tile is passable ID 10
     */
     isPassable: function(x, y, dir) {
+        console.log("X: " + x + " Y: " + y + " DIR: " + dir);
         var i;
         if (!dir) dir = 16;
         
