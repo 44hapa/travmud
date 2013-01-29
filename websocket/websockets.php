@@ -15,6 +15,8 @@ abstract class WebSocketServer {
     protected $headerSecWebSocketProtocolRequired = false;
     protected $headerSecWebSocketExtensionsRequired = false;
 
+    protected $listenerSocket;
+
     function __construct($addr, $port, $bufferLength = 2048) {
         $this->maxBufferSize = $bufferLength;
         $this->master = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("Failed: socket_create()");
@@ -24,9 +26,12 @@ abstract class WebSocketServer {
         $this->sockets[] = $this->master;
         $this->stdout("Server started\nListening on: $addr:$port\nMaster socket: " . $this->master);
 
+        $this->connectToListenerSocket();
+        $this->sockets[] = $this->listenerSocket;
+
         while (true) {
             if (empty($this->sockets)) {
-                $this->sockets[] = $master;
+                $this->sockets[] = $this->master;
             }
             $read = $this->sockets;
             $write = $except = null;
@@ -40,7 +45,12 @@ abstract class WebSocketServer {
                     } else {
                         $this->connect($client);
                     }
-                } else {
+                }
+                elseif ($socket == $this->listenerSocket){
+//                    die('!!!!!!!!!!!!!!!!!!!');
+                }
+
+                else {
                     $numBytes = @socket_recv($socket, $buffer, $this->maxBufferSize, 0); // todo: if($numBytes === false) { error handling } elseif ($numBytes === 0) { remote client disconected }
                     if ($numBytes == 0) {
                         $this->disconnect($socket);
@@ -90,6 +100,7 @@ abstract class WebSocketServer {
         //$this->stdout("> $message");
         $message = $this->frame($message, $user);
         socket_write($user->socket, $message, strlen($message));
+        socket_write($this->listenerSocket, $message, strlen($message));
     }
 
     protected function connect($socket) {
@@ -495,4 +506,13 @@ abstract class WebSocketServer {
         echo ")\n";
     }
 
+    protected function connectToListenerSocket(){
+        $addr = '0.0.0.0';
+        $port = '9001';
+        $listenerSocket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("Failed: socket_create()");
+        socket_set_option($listenerSocket, SOL_SOCKET, SO_REUSEADDR, 1) or die("Failed: socket_option()");
+        socket_bind($listenerSocket, $addr, $port) or die("Failed: socket_bind()");
+        socket_listen($listenerSocket, 20) or die("Failed: socket_listen()");
+        $this->listenerSocket = socket_accept($listenerSocket);
+    }
 }
