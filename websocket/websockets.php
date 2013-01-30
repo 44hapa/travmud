@@ -2,11 +2,11 @@
 
 //require_once('./daemonize.php');
 require_once('./users.php');
+require_once('./config.php');
 
 abstract class WebSocketServer {
 
     protected $userClass = 'WebSocketUser'; // redefine this if you want a custom user class.  The custom user class should inherit from WebSocketUser.
-    protected $maxBufferSize;
     protected $master;
     protected $sockets = array();
     protected $users = array();
@@ -16,17 +16,15 @@ abstract class WebSocketServer {
     protected $headerSecWebSocketExtensionsRequired = false;
 
     protected $listenerSocket;
+    protected $config;
 
-    function __construct($addr, $port, $bufferLength = 2048) {
-        $this->maxBufferSize = $bufferLength;
-        $this->master = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("Failed: socket_create()");
-        socket_set_option($this->master, SOL_SOCKET, SO_REUSEADDR, 1) or die("Failed: socket_option()");
-        socket_bind($this->master, $addr, $port) or die("Failed: socket_bind()");
-        socket_listen($this->master, 20) or die("Failed: socket_listen()");
-        $this->sockets[] = $this->master;
-        $this->stdout("Server started\nListening on: $addr:$port\nMaster socket: " . $this->master);
+    function __construct() {
+        $this->config = Config::getConfig();
 
         $this->connectToListenerSocket();
+        $this->createWebsocket();
+
+        $this->sockets[] = $this->master;
         $this->sockets[] = $this->listenerSocket;
 
         while (true) {
@@ -37,21 +35,11 @@ abstract class WebSocketServer {
             $write = $except = null;
             @socket_select($read, $write, $except, null);
             foreach ($read as $socket) {
-                if ($socket == $this->master) {
-                    $client = socket_accept($socket);
-                    if ($client < 0) {
-                        $this->stderr("Failed: socket_accept()");
-                        continue;
-                    } else {
-                        $this->connect($client);
-                    }
-                }
-                elseif ($socket == $this->listenerSocket){
-//                    die('!!!!!!!!!!!!!!!!!!!');
-                }
+                $this->reactionForWritingInMasterSocket($socket);
+                $this->reactionForWritingInListenerSocket($socket);
 
-                else {
-                    $numBytes = @socket_recv($socket, $buffer, $this->maxBufferSize, 0); // todo: if($numBytes === false) { error handling } elseif ($numBytes === 0) { remote client disconected }
+                if ($socket != $this->listenerSocket && $socket != $this->master) {
+                    $numBytes = @socket_recv($socket, $buffer, $this->config['maxBufferSize'], 0); // todo: if($numBytes === false) { error handling } elseif ($numBytes === 0) { remote client disconected }
                     if ($numBytes == 0) {
                         $this->disconnect($socket);
                     } else {
@@ -66,9 +54,9 @@ abstract class WebSocketServer {
                                 }
                             } else {
                                 do {
-                                    $numByte = @socket_recv($socket, $buffer, $this->maxBufferSize, MSG_PEEK);
+                                    $numByte = @socket_recv($socket, $buffer, $this->config['maxBufferSize'], MSG_PEEK);
                                     if ($numByte > 0) {
-                                        $numByte = @socket_recv($socket, $buffer, $this->maxBufferSize, 0);
+                                        $numByte = @socket_recv($socket, $buffer, $this->config['maxBufferSize'], 0);
                                         if ($message = $this->deframe($buffer, $user)) {
                                             $this->process($user, $message);
                                             if ($user->hasSentClose) {
@@ -506,13 +494,42 @@ abstract class WebSocketServer {
         echo ")\n";
     }
 
+    protected function reactionForWritingInListenerSocket($socket){
+        if ($socket == $this->listenerSocket){
+            socket_recv($socket, $buffer, $this->config['maxBufferSize'], 0);
+            foreach ($this->users as $user) {
+                $this->send($user, $buffer);
+            }
+            var_dump($buffer);
+        }
+    }
+
+    protected function reactionForWritingInMasterSocket($socket){
+        if ($socket == $this->master) {
+            $client = socket_accept($socket);
+            if ($client < 0) {
+                $this->stderr("Failed: socket_accept()");
+                continue;
+            } else {
+                $this->connect($client);
+            }
+        }
+    }
+
+    protected function createWebsocket(){
+        $this->master = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("Failed: socket_create()");
+        socket_set_option($this->master, SOL_SOCKET, SO_REUSEADDR, 1) or die("Failed: socket_option()");
+        socket_bind($this->master, $this->config['websocket']['addr'], $this->config['websocket']['port']) or die("Failed: socket_bind()");
+        socket_listen($this->master, 20) or die("Failed: socket_listen()");
+        $this->stdout("WebsocketServer started\nListening on: {$this->config['websocket']['addr']}:{$this->config['websocket']['port']}\nMaster socket: " . $this->master);
+    }
+
     protected function connectToListenerSocket(){
-        $addr = '0.0.0.0';
-        $port = '9001';
         $listenerSocket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("Failed: socket_create()");
         socket_set_option($listenerSocket, SOL_SOCKET, SO_REUSEADDR, 1) or die("Failed: socket_option()");
-        socket_bind($listenerSocket, $addr, $port) or die("Failed: socket_bind()");
+        socket_bind($listenerSocket, $this->config['server']['addr'], $this->config['server']['port']) or die("Failed: socket_bind()");
         socket_listen($listenerSocket, 20) or die("Failed: socket_listen()");
         $this->listenerSocket = socket_accept($listenerSocket);
+        $this->stdout("ListenerServer started\nListening on: {$this->config['server']['addr']}:{$this->config['server']['port']}\nMaster socket: " . $this->listenerSocket);
     }
 }
