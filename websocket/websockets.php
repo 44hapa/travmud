@@ -42,7 +42,7 @@ abstract class WebSocketServer {
                 if ($this->reactionForWritingInMasterListenerSocket($socket)) {
                     continue;
                 }
-                // Сообщение в listener socket
+                // Сообщение в listener socket (пока c консоли)
                 if ($this->reactionForWritingInListenerSocket($socket)) {
                     continue;
                 }
@@ -100,15 +100,30 @@ abstract class WebSocketServer {
         // the handshake has completed.
     }
 
-    protected function send($user, $message) {
+    /**
+     * Сообщение для клиента
+     *
+     * @param WebSocketUser $user
+     * @param string $message
+     */
+    protected function sendToUser($user, $message) {
         //$this->stdout("> $message");
         $message = $this->frame($message, $user);
         socket_write($user->socket, $message, strlen($message));
+    }
+
+    /**
+     * Сообщение для сервера
+     *
+     * @param string $message
+     */
+    protected function sendToListener($message) {
         socket_write($this->listenerSocket, $message, strlen($message));
     }
 
-    protected function connect($socket) {
-        $user = new $this->userClass(uniqid(), $socket);
+    protected function connect($socket, $userId = null) {
+        $userId = empty($userId) ? uniqid() : $userId;
+        $user = new $this->userClass($userId, $socket);
         array_push($this->users, $user);
         array_push($this->sockets, $socket);
         $this->connecting($user);
@@ -516,7 +531,7 @@ abstract class WebSocketServer {
         }
         socket_recv($socket, $buffer, $this->config['maxBufferSize'], 0);
         foreach ($this->users as $user) {
-            $this->send($user, $buffer);
+            $this->sendToUser($user, $buffer);
         }
         var_dump($buffer);
         return true;
