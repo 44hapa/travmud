@@ -10,6 +10,44 @@ class echoServer extends WebSocketServer {
         $this->sendToListener("USER_ID: {$user->id} $message\n");
     }
 
+
+    protected function sendToUsers($listenerBufer){
+
+//        $listenerBufer = array (
+//            array(
+//                'userId' => 123,
+//                'actionType' => 'move',
+//                'direction' => 'north',
+//
+//                'response' => array(
+//                    'events' => array(
+//                        'move' => array('can' => true, 'message' => 'you go to the north'),
+//                    ),
+//                    'views' => array(
+//                        'mobs' => array(),
+//                        'users' => array(),
+//                        'partMap' => array(),
+//                    ),
+//                ),
+//            )
+//        );
+//
+//        $listenerBufer = json_encode($listenerBufer);
+//        var_dump($listenerBufer);
+//        die();
+
+        $listenerBufer = '111_[{"userId":123,"actionType":"move","direction":"north","response":{"events":{"move":{"can":true,"message":"you go to the north"}},"views":{"mobs":[],"users":[],"partMap":[]}}}]';
+//        $listenerBufer = json_decode($listenerBufer, true);
+//
+//        print_r($listenerBufer);
+//        die();
+
+        foreach ($this->users as$user) {
+            $this->sendToUser($user, $listenerBufer);
+        }
+    }
+
+
     protected function connected($user) {
         // Do nothing: This is just an echo server, there's no need to track the user.
         // However, if we did care about the users, we would probably have a cookie to

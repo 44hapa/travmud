@@ -91,6 +91,8 @@ abstract class WebSocketServer {
 
     abstract protected function process($user, $message); // Calked immediately when the data is recieved.
 
+    abstract protected function sendToUsers($listenerBufer); // Сообщение пользователям, переданое сервером.
+
     abstract protected function connected($user);        // Called after the handshake response is sent to the client.
 
     abstract protected function closed($user);           // Called after the connection is closed.
@@ -108,6 +110,7 @@ abstract class WebSocketServer {
      */
     protected function sendToUser($user, $message) {
         //$this->stdout("> $message");
+        echo ("SERVER SAD [for user_id {$user->id}]: $message");
         $message = $this->frame($message, $user);
         socket_write($user->socket, $message, strlen($message));
     }
@@ -119,6 +122,7 @@ abstract class WebSocketServer {
      */
     protected function sendToListener($message) {
         socket_write($this->listenerSocket, $message, strlen($message));
+        echo ("USER SAD: $message");
     }
 
     protected function connect($socket, $userId = null) {
@@ -529,11 +533,14 @@ abstract class WebSocketServer {
         if ($socket != $this->listenerSocket){
             return false;
         }
+
         socket_recv($socket, $buffer, $this->config['maxBufferSize'], 0);
-        foreach ($this->users as $user) {
-            $this->sendToUser($user, $buffer);
+
+        if (empty($buffer)) {
+            die("\nSERVER DOWN (empty buffer)\n");
         }
-        var_dump($buffer);
+
+        $this->sendToUsers($buffer);
         return true;
     }
 
