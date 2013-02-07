@@ -273,6 +273,15 @@ abstract class WebSocketServer {
         return null;
     }
 
+    protected function getUserById($userId) {
+        foreach ($this->users as $user) {
+            if ($user->id == $userId) {
+                return $user;
+            }
+        }
+        return null;
+    }
+
     protected function stdout($message) {
         if ($this->interactive) {
             echo "$message\n";
