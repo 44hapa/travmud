@@ -42,7 +42,8 @@
             var socket;
 
             function initWbsocket() {
-                var host = "ws://127.0.0.1:8000"; // SET THIS TO YOUR SERVER
+                //var host = "ws://127.0.0.1:8000"; // SET THIS TO YOUR SERVER
+                var host = "ws://10.20.20.233:8000"; // SET THIS TO YOUR SERVER
                 try {
                     socket = new WebSocket(host);
                     log('WebSocket - status '+socket.readyState);
@@ -50,6 +51,13 @@
                         log("Welcome - status "+this.readyState);
                     };
                     socket.onmessage = function(msg) {
+                        console.log(msg.data);
+                        rpg.player.move(msg.data * 1);
+                        rpg.player.move(msg.data * 1);
+                        rpg.player.move(msg.data * 1);
+                        rpg.player.move(msg.data * 1);
+                        rpg.player.animation('stop');
+
                         log("Received: "+msg.data);
                     };
                     socket.onclose   = function(msg) {

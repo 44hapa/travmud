@@ -1308,6 +1308,7 @@ false : event but not passable
         }
 
         function moving() {
+            console.log('moving to ' + dir[pos]);
             switch (dir[pos]) {
                 case 'upLeft':
                 /*case 1:

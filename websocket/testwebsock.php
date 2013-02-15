@@ -15,7 +15,9 @@ class echoServer extends WebSocketServer {
 
 
     protected function sendToUsers($listenerBufer){
-
+        $this->sendToUser($this->getUserById(1), $listenerBufer);
+//        $this->sendToUser($this->getUserById(2), $listenerBufer);
+return;
 //        $listenerBufer = array (
 //            1 => array(
 //                'request' => array(
