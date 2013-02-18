@@ -1,5 +1,8 @@
 <?php
 
+DEFINE('BASE_PATH', __DIR__);
+require_once(BASE_PATH . '/dev.config.php');
+
 class Config{
     static private $config = array(
         'maxBufferSize' => 2048,
@@ -19,7 +22,9 @@ class Config{
 
 
     static public function getConfig(){
-        return self::$config;
+        global $config;
+        $result = array_merge($config, self::$config);
+        return $result;
     }
 
 }

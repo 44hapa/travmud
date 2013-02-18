@@ -1,16 +1,20 @@
 <?php
 
+require_once('./../config.php');;
+
 class Listener {
 
     protected $maxBufferSize;
     protected $master;
     protected $sockets = array();
+    private $config;
 
     function __construct($addr, $port, $bufferLength = 2048) {
+        $this->config = Config::getConfig();
         $this->maxBufferSize = $bufferLength;
         $this->master = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("Failed: socket_create()");
         // Коннект к websocketServer (меня там знают как listener)
-        socket_connect($this->master, '0.0.0.0', '8001');
+        socket_connect($this->master, $this->config['server']['addr'], $this->config['server']['port']);
         echo("Server LISTENER started\nListening on: $addr:$port\nMaster socket: " . $this->master);
 
         $i = 0;
