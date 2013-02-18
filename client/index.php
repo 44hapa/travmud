@@ -51,14 +51,23 @@
                         log("Welcome - status "+this.readyState);
                     };
                     socket.onmessage = function(msg) {
-                        console.log(msg.data);
-                        rpg.player.move(msg.data * 1);
-                        rpg.player.move(msg.data * 1);
-                        rpg.player.move(msg.data * 1);
-                        rpg.player.move(msg.data * 1);
-                        rpg.player.animation('stop');
+                        var msgObj = $.parseJSON(msg.data);
+                        var comparingDirection = {
+                            север : 2,
+                            юг : 8,
+                            запад : 4,
+                            восток : 6
+                        }
 
-                        log("Received: "+msg.data);
+                        log("Received: "+msgObj.response.message);
+
+                        if (msgObj.response.actionType == 'move') {
+                            var responseDirection = msgObj.response.action;
+                            rpg.player.moreMove(comparingDirection[responseDirection],4);
+                        }
+
+                        console.log(msgObj);
+
                     };
                     socket.onclose   = function(msg) {
                         log("Disconnected - status "+this.readyState);
@@ -67,18 +76,18 @@
                 catch(ex){
                     log(ex);
                 }
-                $_("msg").focus();
+                $("#msg").focus();
             }
 
             function send(){
                 var txt,msg;
-                txt = $_("msg");
-                msg = txt.value;
+                txt = $("#msg");
+                msg = txt.val();
                 if(!msg) {
                     alert("Message can not be empty");
                     return;
                 }
-                txt.value="";
+                txt.val("");
                 txt.focus();
                 try {
                     socket.send(msg);
@@ -101,8 +110,7 @@
             }
 
             // Utilities
-            function $_(id){ return document.getElementById(id); }
-            function log(msg){ $_("log").innerHTML+="<br>"+msg; }
+            function log(msg){ $("#log").html($("#log").html() + "<br>"+msg); }
             function onkey(event){ if(event.keyCode==13){ send(); } }
         </script>
 <!--WEBSOCKET END -->
@@ -212,6 +220,13 @@
 
                     // Set the scrolling on the player
                     rpg.setScreenIn("Player");
+
+                    rpg.player.moreMove = function(direction, count){
+                        for (i = 0; i < count; i++) {
+                            rpg.player.move(direction);
+                        }
+                        rpg.player.animation('stop');
+                    }
 
                 }
 

@@ -65,7 +65,7 @@ abstract class WebSocketServer {
 
                 // Посылаем пользователю сообщение, если оно не более $this->config['maxBufferSize']
                 if ($message = $this->deframe($buffer, $user)) {
-                    $this->process($user, utf8_encode($message));
+                    $this->process($user, $message);
                     if ($user->hasSentClose) {
                         $this->disconnect($user->socket);
                     }
@@ -276,6 +276,15 @@ abstract class WebSocketServer {
     protected function getUserById($userId) {
         foreach ($this->users as $user) {
             if ($user->id == $userId) {
+                return $user;
+            }
+        }
+        return null;
+    }
+
+    protected function getUserByName($userName) {
+        foreach ($this->users as $user) {
+            if ($user->name == $userName) {
                 return $user;
             }
         }

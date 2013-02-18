@@ -10,47 +10,39 @@ class echoServer extends WebSocketServer {
     //protected $maxBufferSize = 1048576; //1MB... overkill for an echo server, but potentially plausible for other applications.
 
     protected function process($user, $message) {
+//        if ('UTF-8' != mb_detect_encoding($message)) {
+//            throw new Exception('Encoding is not UTF-8 ' . mb_detect_encoding($message));
+//        }
+
         $this->sendToListener("USER_ID: {$user->id} $message\n");
     }
 
 
     protected function sendToUsers($listenerBufer){
-        $this->sendToUser($this->getUserById(1), $listenerBufer);
-//        $this->sendToUser($this->getUserById(2), $listenerBufer);
-return;
-//        $listenerBufer = array (
-//            1 => array(
-//                'request' => array(
-//                    'actionType' => 'move',
-//                    'direction' => 'north',
-//                ),
-//                'response' => array(
-//                    'move' => true,
-//                    'message' => 'you go to the north',
-//                ),
-//                'views' => array(
-//                    'mobs' => array(),
-//                    'users' => array(),
-//                    'partMap' => array(),
-//                ),
-//            )
-//        );
-//
+        list($usersString, $message) = explode('__', trim($listenerBufer));
+
+        $users = explode('_', $usersString);
+
+        foreach ($users as $userId) {
+            $this->sendToUser($this->getUserById($userId), $message);
+        }
+    }
+
+    protected function sendToUsers_nc($listenerBufer){
+        $listenerBufer = trim($listenerBufer);
 //        $listenerBufer = json_encode($listenerBufer);
 //        echo("\n$listenerBufer");
 //        die();
 
-        $listenerBufer = '{"1":{"request":{"actionType":"move","direction":"north"},"response":{"move":true,"message":"you go to the north"},"views":{"mobs":[],"users":[],"partMap":[]}}}';
+//        $messagesJSON = '1_2__{"request":{"actionType":"move","direction":"north"},"response":{"actionType":"move","action":"'.$listenerBufer.'","message":"Ты идешь на '.$listenerBufer.'"},"views":{"mobs":[],"users":[],"partMap":[]}}';
+        $messagesJSON = '1__{"request":{"actionType":"move","direction":"north"},"response":{"actionType":"move1","action":"'.$listenerBufer.'","message":"Ты идешь на '.$listenerBufer.'"},"views":{"mobs":[],"users":[],"partMap":[]}}';
+        list($usersString, $message) = explode('__', $messagesJSON);
 
-        $mesagesForUsers = json_decode($listenerBufer, true);
+        $users = explode('_', $usersString);
 
-        foreach ($mesagesForUsers as $userId => $message) {
-            $this->sendToUser($this->getUserById($userId), json_encode($message));
+        foreach ($users as $userId) {
+            $this->sendToUser($this->getUserById($userId), $message);
         }
-
-//        foreach ($this->users as $user) {
-//            $this->sendToUser($user, json_encode($mesagesForUsers));
-//        }
     }
 
 
