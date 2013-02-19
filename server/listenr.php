@@ -2,6 +2,7 @@
 
 require_once('./../config.php');
 require_once(BASE_PATH . '/server/user.php');
+require_once(BASE_PATH . '/server/map.php');
 
 class Listener {
 
@@ -10,6 +11,12 @@ class Listener {
     protected $sockets = array();
     private $config;
     private $users = array();
+
+    /**
+     *
+     * @var Map
+     */
+    private $map;
 
     private $templateUserResponse = array(
         'request' => '',
@@ -30,6 +37,7 @@ class Listener {
 
 
     public function __construct($addr, $port, $bufferLength = 2048) {
+        $this->map = Map::getInstance();
         $this->config = Config::getConfig();
         $this->maxBufferSize = $bufferLength;
         $this->master = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("Failed: socket_create()");
