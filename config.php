@@ -22,8 +22,8 @@ class Config{
 
 
     static public function getConfig(){
-        global $config;
-        $result = array_merge($config, self::$config);
+        global $devConfig;
+        $result = array_merge(self::$config, $devConfig);
         return $result;
     }
 

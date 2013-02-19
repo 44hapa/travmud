@@ -65,7 +65,7 @@ $config = Config::getConfig();
                         log("Received: "+msgObj.response.message);
 
                         if (msgObj.response.actionType == 'move') {
-                            var responseDirection = msgObj.response.action;
+                            var responseDirection = msgObj.response.actionValue;
                             rpg.player.moreMove(comparingDirection[responseDirection],4);
                         }
 

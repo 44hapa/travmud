@@ -13,8 +13,7 @@ class echoServer extends WebSocketServer {
 //        if ('UTF-8' != mb_detect_encoding($message)) {
 //            throw new Exception('Encoding is not UTF-8 ' . mb_detect_encoding($message));
 //        }
-
-        $this->sendToListener("USER_ID: {$user->id} $message\n");
+        $this->sendToListener("{$user->id}__$message");
     }
 
 
@@ -46,11 +45,16 @@ class echoServer extends WebSocketServer {
     }
 
 
+    /**
+     *  Соединение только что установлено, рукопожатие осуществлено.
+     *
+     * @param WebSocketUser $user
+     */
     protected function connected($user) {
         $user->id = ++$this->userIncId;
-        // Do nothing: This is just an echo server, there's no need to track the user.
-        // However, if we did care about the users, we would probably have a cookie to
-        // parse at this step, would be looking them up in permanent storage, etc.
+
+        // Предложим пользователю внести имя
+        $this->process($user, 'connect');
     }
 
     protected function closed($user) {
