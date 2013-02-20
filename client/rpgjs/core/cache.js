@@ -338,10 +338,18 @@ Cache.BGS = function(filename, load) {
  * @param {Function} callback Callback when the map was loaded
  * @param {Boolean} custompath (optional) Set yourself the path and file name
  * @param {Boolean} nocache (optional) if true, the map data is not cached
+ * @param {String} mapFromSocket (optional) This map data.
 */
-Cache.map = function(name, callback, custompath, nocache) {
+Cache.map = function(name, callback, custompath, nocache, mapFromSocket) {
 	var path = custompath ? name : Cache.path + 'Data/Maps/' + name + '.json';
-	if (Cache.propretiesMap[name] && !nocache) {
+    // Загрузка с websocket
+    if (mapFromSocket) {
+        var map_data = JSON.parse(mapFromSocket);
+        Cache.propretiesMap[name] = map_data;
+        callback(map_data);
+    }
+
+	else if (Cache.propretiesMap[name] && !nocache) {
 		callback(Cache.propretiesMap[name]);
 	}
 	else {

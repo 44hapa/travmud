@@ -1250,7 +1250,7 @@ Rpg.prototype = {
                                         </ul></li>
      * @param {Function} isLoad (Optional) Callback Function when the map is loaded
     */
-    loadMap: function(filename, propreties, isLoad, load) {
+    loadMap: function(filename, propreties, isLoad, load, mapFromSocket) {
         var self = this;
         var autotiles_array = [];
         var i, j, k, l;
@@ -1310,7 +1310,7 @@ Rpg.prototype = {
             name: filename,
             propreties: propreties
         };
-        Cache.map(filename, callback, propreties.customPath, propreties.noCache);
+        Cache.map(filename, callback, propreties.customPath, propreties.noCache, mapFromSocket);
                 
         function bitmapAutoTiles(bmp, position, animated) {
             var i=0;

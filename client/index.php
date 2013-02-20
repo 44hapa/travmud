@@ -44,6 +44,7 @@ $config = Config::getConfig();
 
         <script type="text/javascript">
             var socket;
+            var mapFromSocket;
 
             function initWbsocket() {
                 var host = "ws://<?php echo ($config['websocket']['addr'].':'.$config['websocket']['port']) ?>"; // SET THIS TO YOUR SERVER
@@ -69,7 +70,31 @@ $config = Config::getConfig();
                             rpg.player.moreMove(comparingDirection[responseDirection],4);
                         }
 
-                        console.log(msgObj);
+                        if (msgObj.views.partMap){
+                            mapFromSocket = msgObj.views.partMap;
+//=========================================== NEED REMAKE ===========================================
+                            rpg.loadMap('XpeH', {
+                                tileset: 'village.png',
+                                autotiles: ['sol11.png'],
+                                bgm:  {mp3: 'Town', ogg: 'Town'},
+                                player:  {
+                                    x: 10,
+                                    y: 10,
+                                    direction: 'up',
+                                    filename: 'Hero.png',
+                                    regX: 30,
+                                    regY: 55,
+                                    actionBattle: {
+                                        hp_max: 200,
+                                        actions: ['myattack']
+                                    },
+                                    actions: ['myattack']
+                                }
+
+                            }, false, false, mapFromSocket);
+//=========================================== NEED REMAKE ===========================================
+
+                        }
 
                     };
                     socket.onclose   = function(msg) {
