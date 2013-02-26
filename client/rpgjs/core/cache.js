@@ -214,11 +214,19 @@ Cache.pictures = function(filename, load, data) {
  * @param {Boolean} custompath (optional) Set yourself the path and file name
  * @param {Boolean} nocache (optional) if true, the event data is not cached
 */
-Cache.event = function(name, callback_event, map_name, custompath, noCache) {
+Cache.event = function(name, callback_event, map_name, custompath, noCache, dataFromSocket) {
 	var path;
 	if (map_name) name = map_name + '/' + name;
 	path = custompath ? name : Cache.path + 'Data/Events/' + name + '.json';
-	if (Cache.propretiesEvent[name] && !noCache) {
+
+    // Загрузка с websocket
+    if (dataFromSocket) {
+        var event = JSON.parse(dataFromSocket);
+        Cache.propretiesEvent[name] = event;
+        callback_event(event);
+    }
+
+	else if (Cache.propretiesEvent[name] && !noCache) {
 		callback_event(Cache.propretiesEvent[name]);
 	}
 	else {

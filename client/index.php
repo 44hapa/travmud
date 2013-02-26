@@ -93,8 +93,18 @@ $config = Config::getConfig();
 
                             }, false, false, mapFromSocket);
 //=========================================== NEED REMAKE ===========================================
+                        }
+
+                        if (msgObj.views.mobs){
+                            dataFromSocket = msgObj.views.mobs;
+
+                            rpg.prepareEventAjax("monster1", false, dataFromSocket);
+//                            createMonster('monster1', 8, 13);
+                            rpg.setEventPrepared("monster1", {x: 8, y: 13});
+                            rpg.addEventPrepared("monster1");
 
                         }
+
 
                     };
                     socket.onclose   = function(msg) {
@@ -161,8 +171,24 @@ $config = Config::getConfig();
                     $('#sound').trigger("click");
                 }
 
-                // Adding Animation
                 // Adding animation from file "Database.js"
+                rpg.addAnimation(Database.animation['EM Exclamation']);
+                rpg.addAnimation(Database.animation['Darkness 1']);
+                rpg.addAnimation(Database.animation['Fang']);
+                rpg.addAnimation(Database.animation['SP Recovery 2']);
+
+                // Adding Actions
+                rpg.addAction('attack_ennemy', {
+                        action: 'attack',
+                        suffix_motion: [''],
+                        duration_motion: 1,
+                        block_movement: true,
+                        wait_finish: 1
+                });
+
+                rpg.prepareEventAjax("monster1");
+//                rpg.prepareEventAjax("monster2");
+//                rpg.prepareEventAjax("monster3");
 
 
                 rpg.addAction('myattack', {
@@ -243,6 +269,8 @@ $config = Config::getConfig();
 
 
                 function init() {
+//                    createMonster('monster1', 8, 13);
+
                     rpg.player.useMouse(true);
                     rpg.player.setTypeMove("real");
 

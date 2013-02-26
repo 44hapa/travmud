@@ -26,8 +26,7 @@ class Listener {
             'message' => 'Введите ваше имя',
         ),
         'views' => array(
-            'mobs' => array(
-            ),
+            'mobs' => null,
             'users' => array(
             ),
             'partMap' => null
@@ -92,6 +91,16 @@ class Listener {
             $messagesJSON = json_encode($response);
             return $userId . '__' . $messagesJSON;
         }
+        if ('mob' == $message) {
+            $response = $this->templateUserResponse;
+            $response['request'] = $message;
+            $response['response'] = array(
+                'message' => "Вот те монстер",
+            );
+            $response['views']['mobs'] = $this->getMob();
+            $messagesJSON = json_encode($response);
+            return $userId . '__' . $messagesJSON;
+        }
 
         $response = $this->templateUserResponse;
         $response['request'] = $message;
@@ -143,6 +152,83 @@ class Listener {
         }
         return false;
     }
+
+
+    private function getChar(){
+        $data = '
+[
+    {
+        "name": "monster1",
+        "x": 19,
+        "y": 21
+    },
+    [
+        {
+
+            "character_hue": "067-Goblin01.png",
+            "direction": "bottom",
+            "type": "fixed",
+            "trigger": "event_touch",
+            "speed": 3,
+            "frequence": 0
+        }
+
+    ]
+]
+
+            ';
+        $data = json_decode($data, true);
+        return json_encode($data);
+    }
+
+
+
+    private function getMob(){
+    return;
+        $data = '
+[
+    {
+        "name": "monster1",
+        "x": 19,
+        "y": 21
+    },
+    [
+        {
+
+            "character_hue": "067-Goblin01.png",
+            "direction": "bottom",
+            "type": "random",
+            "trigger": "event_touch",
+            "speed": 3,
+            "frequence": 0,
+            "action_battle": {
+                "area": 2,
+                "hp_max": 300,
+                "animation_death": "Darkness 1",
+                "actions": ["attack_ennemy"],
+                "ennemyDead": [{
+                        "name": "coin",
+                        "probability": 100,
+                        "call": "drop_coin"
+                    }],
+                "detection": "_default",
+                "nodetection": "_default",
+                "attack": "_default",
+                "affected": "_default",
+                "offensive": "_default",
+                "passive": "_default"
+            }
+        }
+
+    ]
+]
+
+';
+        $data = json_decode($data, true);
+        return json_encode($data);
+    }
+
+
 
 
     /**

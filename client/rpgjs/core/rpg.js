@@ -2488,12 +2488,12 @@ Rpg.prototype = {
      * @param {String} name Filename
      * @param {Function} (optional) callback Callback
     */
-    prepareEventAjax: function(name, callback) {
+    prepareEventAjax: function(name, callback, dataFromSocket) {
         var self = this;
         Cache.event(name, function(event) {
             self.prepareEvent(event);
             if (callback) callback(event);
-        });
+        }, false, false, false, dataFromSocket);
     },
 	
 	

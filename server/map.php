@@ -20,7 +20,7 @@ class Map extends SplFixedArray{
      *
      * @return Map
      */
-    public function getInstance($xCount = 10, $yCount = 10){
+    static public function getInstance($xCount = 10, $yCount = 10){
         if (!empty(self::$instance)) {
             return self::$instance;
         }
