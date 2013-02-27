@@ -56,6 +56,7 @@ $config = Config::getConfig();
                     };
                     socket.onmessage = function(msg) {
                         var msgObj = $.parseJSON(msg.data);
+                        console.log(msgObj);
                         var comparingDirection = {
                             север : 2,
                             юг : 8,
@@ -97,9 +98,9 @@ $config = Config::getConfig();
 
                         if (msgObj.views.mobs){
                             dataFromSocket = msgObj.views.mobs;
-
                             rpg.prepareEventAjax("monster1", false, dataFromSocket);
-//                            createMonster('monster1', 8, 13);
+
+                            // create monster
                             rpg.setEventPrepared("monster1", {x: 8, y: 13});
                             rpg.addEventPrepared("monster1");
 
@@ -186,11 +187,6 @@ $config = Config::getConfig();
                         wait_finish: 1
                 });
 
-                rpg.prepareEventAjax("monster1");
-//                rpg.prepareEventAjax("monster2");
-//                rpg.prepareEventAjax("monster3");
-
-
                 rpg.addAction('myattack', {
                     action: 'attack', // for Action Battle System
                     suffix_motion: ['_SWD_1'], // suffix of the filename
@@ -264,13 +260,11 @@ $config = Config::getConfig();
                         }
                     }
 
-                    createMonster('monster3', 9, 9);
+//                    createMonster('monster3', 9, 9);
                 }
 
 
                 function init() {
-//                    createMonster('monster1', 8, 13);
-
                     rpg.player.useMouse(true);
                     rpg.player.setTypeMove("real");
 

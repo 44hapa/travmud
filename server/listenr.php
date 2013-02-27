@@ -43,18 +43,37 @@ class Listener {
         socket_connect($this->master, $this->config['server']['addr'], $this->config['server']['port']);
         echo("Server LISTENER started\nListening on: $addr:$port\nMaster socket: " . $this->master);
 
-        $i = 0;
-        while ($i < 30) {
-            sleep(1);
-            // Читаем, что там нам положил в сокет websocketServer
-            $requestFromWebsocket = trim(socket_read($this->master, $this->maxBufferSize));
 
-            // Пишем в websocketServer (он там дальше проксирует на клиента)
-            $responseToWebsocket = $this->generateResponse($requestFromWebsocket);
-            socket_write($this->master, $responseToWebsocket);
-            var_dump($responseToWebsocket);
-            $i++;
-        }
+        $read = array($this->master);
+        $write  = NULL;
+        $except = NULL;
+        while(1) {
+            @socket_select($read, $write, $except, 0, 1);
+            $numBytes = @socket_recv($this->master, $buffer, 24000, MSG_DONTWAIT); // MSG_DONTWAIT - что бы не блокировал
+
+            if ($numBytes > 0) {
+                echo "\nsocket NOT empty\n";
+                socket_write($this->master, $buffer);
+            }
+            else{
+                sleep(2);
+                echo "\nsocket empty\n";
+            }
+}
+
+
+//        $i = 0;
+//        while ($i < 30) {
+//            sleep(1);
+//            // Читаем, что там нам положил в сокет websocketServer
+//            $requestFromWebsocket = trim(socket_read($this->master, $this->maxBufferSize));
+//
+//            // Пишем в websocketServer (он там дальше проксирует на клиента)
+//            $responseToWebsocket = $this->generateResponse($requestFromWebsocket);
+//            socket_write($this->master, $responseToWebsocket);
+//            var_dump($responseToWebsocket);
+//            $i++;
+//        }
         socket_close($this->master);
     }
 
@@ -97,7 +116,8 @@ class Listener {
             $response['response'] = array(
                 'message' => "Вот те монстер",
             );
-            $response['views']['mobs'] = $this->getMob();
+//            $response['views']['mobs'] = $this->getMob();
+            $response['views']['mobs'] = $this->getMob2();
             $messagesJSON = json_encode($response);
             return $userId . '__' . $messagesJSON;
         }
@@ -138,6 +158,17 @@ class Listener {
             return $response;
         }
         return false;
+    }
+
+
+    private function setMessageForAll($userAuthor, $messageForAll){
+        $usersKeys = array();
+        foreach ($this->users as $user) {
+            if ($userAuthor != $user) {
+                $usersKeys[] = $user->wsId;
+            }
+        }
+        return implode('_', $usersKeys);
     }
 
 
@@ -184,7 +215,6 @@ class Listener {
 
 
     private function getMob(){
-    return;
         $data = '
 [
     {
@@ -218,6 +248,33 @@ class Listener {
                 "offensive": "_default",
                 "passive": "_default"
             }
+        }
+
+    ]
+]
+
+';
+        $data = json_decode($data, true);
+        return json_encode($data);
+    }
+
+    private function getMob2(){
+        $data = '
+[
+    {
+        "name": "monster1",
+        "x": 19,
+        "y": 21
+    },
+    [
+        {
+
+            "character_hue": "067-Goblin01.png",
+            "direction": "bottom",
+            "type": "fixed",
+            "trigger": "event_touch",
+            "speed": 3,
+            "frequence": 0
         }
 
     ]

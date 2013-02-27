@@ -415,6 +415,7 @@ var p = {
     },
 
     moveType: function() {
+        // Движуха моба
         if (this.type == 'random') {
             this.moveRandom();
         }
@@ -1057,6 +1058,8 @@ event.detectionEvents(64, "foo");
             }
             // if (self.canMove(dir)) {
             self.move(dir, function() {
+//                console.log('bobrik go to: '  + dir);
+                console.log(self);
                 rand();
             }, true);
         // }
@@ -1308,7 +1311,7 @@ false : event but not passable
         }
 
         function moving() {
-            console.log('moving to ' + dir[pos]);
+//            console.log('moving to ' + dir[pos]);
             switch (dir[pos]) {
                 case 'upLeft':
                 /*case 1:
