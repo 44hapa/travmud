@@ -6,6 +6,7 @@ require_once(BASE_PATH . '/dev.config.php');
 class Config{
     static private $config = array(
         'maxBufferSize' => 2048,
+		'stepSize' => 4,
         'websocket' => array(
             'addr' => '0.0.0.0',
             'port' => '8000',

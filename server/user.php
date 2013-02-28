@@ -12,7 +12,8 @@ class TravmadUser {
      */
     public $wsId;
 
-
+    public $positionX;
+    public $positionY;
 
     public function __construct($wsId){
         $this->wsId = $wsId;

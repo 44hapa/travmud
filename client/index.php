@@ -106,6 +106,24 @@ $config = Config::getConfig();
 
                         }
 
+                        if (msgObj.views.users){
+                            // Пробегаемся по списку пользователей и отображаем их.
+                            for (var userName in msgObj.views.users) {
+                                dataFromSocket = msgObj.views.users[userName];
+                                rpg.prepareEventAjax(userName, false, dataFromSocket);
+
+                                // create monster
+                                rpg.setEventPrepared(userName);
+                                rpg.addEventPrepared(userName);
+                            }
+                        }
+
+                        if (msgObj.response.actionType == 'setPosition'){
+                            var positions = msgObj.response.actionValue;
+                            rpg.player.bitmap.visible = true;
+                            rpg.player.setPosition(positions.positionX,positions.positionY);
+                            rpg.setCamera(positions.positionX,positions.positionY);
+                        }
 
                     };
                     socket.onclose   = function(msg) {
@@ -168,9 +186,9 @@ $config = Config::getConfig();
                 rpg.setLang("en");
 
                 var cookie = getCookie();
-                if (cookie['rpg-volume'] == 0) {
+//                if (cookie['rpg-volume'] == 0) {
                     $('#sound').trigger("click");
-                }
+//                }
 
                 // Adding animation from file "Database.js"
                 rpg.addAnimation(Database.animation['EM Exclamation']);
@@ -265,6 +283,9 @@ $config = Config::getConfig();
 
 
                 function init() {
+                    // Сделаем себя невидимыми
+                    rpg.player.bitmap.visible = false;
+
                     rpg.player.useMouse(true);
                     rpg.player.setTypeMove("real");
 
