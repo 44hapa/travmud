@@ -2,32 +2,43 @@
 
 class Response{
 
-    public $request;
+    public $request = null;
+    public $actionType = null;
+    public $actionValue = null;
+    public $message = null;
+    public $partMap = null;
 
-    public $actionType;
-    public $actionValue;
-    public $message;
+    public $userName = null;
+    public $userActionType = null;
+    public $userActionValue = null;
+    public $userMessage = null;
 
-    public $mobs;
-    public $users;
-    public $partMap;
-
+    public $mobName = null;
+    public $mobActionType = null;
+    public $mobActionValue = null;
+    public $mobMessage = null;
 
     public function __construct(){}
 
     private function getTemplate(){
         $templateUserResponse = array(
-            'request' => '',
-            'response' => array(
+            'request' => null,
+            'actionType' => null,
+            'actionValue' => null,
+            'message' => null,
+            'partMap' => null,
+            'user' => array(
+                'name' => null,
                 'actionType' => null,
                 'actionValue' => null,
-                'message' => 'Введите ваше имя',
+                'message' => null
             ),
-            'views' => array(
-                'mobs' => null,
-                'users' => null,
-                'partMap' => null
-            ),
+            'mob' => array(
+                'name' => null,
+                'actionType' => null,
+                'actionValue' => null,
+                'message' => null
+            )
         );
         return $templateUserResponse;
     }
@@ -35,13 +46,20 @@ class Response{
     public function toString(){
         $templateUserResponse = $this->getTemplate();
         $templateUserResponse['request'] = $this->request;
-        $templateUserResponse['response']['actionType'] = $this->actionType;
-        $templateUserResponse['response']['actionValue'] = $this->actionValue;
-        $templateUserResponse['response']['message'] = $this->message;
+        $templateUserResponse['actionType'] = $this->actionType;
+        $templateUserResponse['actionValue'] = $this->actionValue;
+        $templateUserResponse['message'] = $this->message;
+        $templateUserResponse['partMap'] = $this->partMap;
 
-        $templateUserResponse['views']['mobs'] = $this->mobs;
-        $templateUserResponse['views']['users'] = $this->users;
-        $templateUserResponse['views']['partMap'] = $this->partMap;
+        $templateUserResponse['user']['name'] = $this->userName;
+        $templateUserResponse['user']['actionType'] = $this->userActionType;
+        $templateUserResponse['user']['actionValue'] = $this->userActionValue;
+        $templateUserResponse['user']['message'] = $this->userMessage;
+
+        $templateUserResponse['mob']['name'] = $this->mobName;
+        $templateUserResponse['mob']['actionType;'] = $this->mobActionType;
+        $templateUserResponse['mob']['actionValue'] = $this->mobActionValue;
+        $templateUserResponse['mob']['message'] = $this->mobMessage;
 
         return json_encode($templateUserResponse);
     }

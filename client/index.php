@@ -64,15 +64,16 @@ $config = Config::getConfig();
                             восток : 6
                         }
 
-                        log("Received: "+msgObj.response.message);
+                        log("Received: "+msgObj.message);
 
-                        if (msgObj.response.actionType == 'move') {
-                            var responseDirection = msgObj.response.actionValue;
-                            rpg.player.moreMove(comparingDirection[responseDirection],4);
+                        if (msgObj.actionType == 'move') {
+                            var responseDirection = msgObj.actionValue;
+                            rpg.player.moreMove(comparingDirection[responseDirection],1);
+//                            rpg.player.move(comparingDirection[responseDirection]);
                         }
 
-                        if (msgObj.views.partMap){
-                            mapFromSocket = msgObj.views.partMap;
+                        if (msgObj.partMap){
+                            mapFromSocket = msgObj.partMap;
 //=========================================== NEED REMAKE ===========================================
                             rpg.loadMap('XpeH', {
                                 tileset: 'village.png',
@@ -96,34 +97,63 @@ $config = Config::getConfig();
 //=========================================== NEED REMAKE ===========================================
                         }
 
-                        if (msgObj.views.mobs){
-                            dataFromSocket = msgObj.views.mobs;
-                            rpg.prepareEventAjax("monster1", false, dataFromSocket);
+//                        if (msgObj.mob){
+//                            dataFromSocket = msgObj.mob;
+//                            rpg.prepareEventAjax("monster1", false, dataFromSocket);
+//
+//                            // create monster
+//                            rpg.setEventPrepared("monster1", {x: 8, y: 13});
+//                            rpg.addEventPrepared("monster1");
+//
+//                        }
 
-                            // create monster
-                            rpg.setEventPrepared("monster1", {x: 8, y: 13});
-                            rpg.addEventPrepared("monster1");
+                        // Смотрим, прислал ли что какой-нибудь чар (не мы!!!)
+                        if (msgObj.user.name){
+                            var userName = msgObj.user.name;
+                            // смотрим, какое действие прислал чар.
 
-                        }
-
-                        if (msgObj.views.users){
-                            // Пробегаемся по списку пользователей и отображаем их.
-                            for (var userName in msgObj.views.users) {
-                                dataFromSocket = msgObj.views.users[userName];
+                            // Коннект нового чара
+                            if (msgObj.user.actionType == 'connectChar'){
+                                dataFromSocket = msgObj.user.actionValue[userName];
                                 rpg.prepareEventAjax(userName, false, dataFromSocket);
-
-                                // create monster
+                                // create char
                                 rpg.setEventPrepared(userName);
                                 rpg.addEventPrepared(userName);
                             }
+
+                            // Движуха чара
+                            if (msgObj.user.actionType == 'move'){
+                                var charObj = rpg.getEventByName(msgObj.user.name);
+                                dataFromSocket = msgObj.user.actionValue;
+                                console.log(comparingDirection);
+                                console.log(dataFromSocket);
+                                charObj.moreMove(comparingDirection[dataFromSocket],1);
+//                                charObj.move(comparingDirection[dataFromSocket]);
+                            }
                         }
 
-                        if (msgObj.response.actionType == 'setPosition'){
-                            var positions = msgObj.response.actionValue;
+
+                        // Это когда мы приконнектились и получили имя
+                        if (msgObj.actionType == 'setPosition'){
+                            // Создадим себя в нужных координатах
+                            var myPosition = msgObj.actionValue.myPosition;
                             rpg.player.bitmap.visible = true;
-                            rpg.player.setPosition(positions.positionX,positions.positionY);
-                            rpg.setCamera(positions.positionX,positions.positionY);
+                            rpg.player.setPosition(myPosition.positionX,myPosition.positionY);
+                            rpg.setCamera(myPosition.positionX, myPosition.positionY);
+
+                            // Если уже кто-то приконнектился до нас (мы не первые) - отрисуем и их
+                            if (msgObj.actionValue.charsPosition) {
+                                for (var charName in msgObj.actionValue.charsPosition) {
+                                    dataFromSocket = msgObj.actionValue.charsPosition[charName];
+                                    rpg.prepareEventAjax(charName, false, dataFromSocket);
+                                    // create char
+                                    rpg.setEventPrepared(charName);
+                                    rpg.addEventPrepared(charName);
+                                }
+                            }
                         }
+
+
 
                     };
                     socket.onclose   = function(msg) {
@@ -291,14 +321,6 @@ $config = Config::getConfig();
 
                     // Set the scrolling on the player
                     rpg.setScreenIn("Player");
-
-                    rpg.player.moreMove = function(direction, count){
-                        for (i = 0; i < count; i++) {
-                            rpg.player.move(direction);
-                        }
-                        rpg.player.animation('stop');
-                    }
-
                 }
 
                 function createMonster(name, x, y) {

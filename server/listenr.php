@@ -103,7 +103,9 @@ class Listener {
             $response->request = $message;
             $response->message =  "Вот те монстер";
 //            $response->mobs = $this->getMob();
-            $response->mobs = $this->getMob2();
+            $response->mobName = 'mob1';
+            $response->mobActionType = 'create';
+            $response->mobActionValue = $this->getMob('mob1');
             return $userId . '__' . $response->toString();
         }
 
@@ -116,7 +118,13 @@ class Listener {
 
         $this->userMove($user, $message);
         // Оповестим всех, что мы двигаемся.
-        //TODO
+        $responseAll = new Response();
+        $responseAll->userName = $user->name;
+        $responseAll->userActionType = 'move';
+        $responseAll->userActionValue = $message;
+        $responseAll->message = 'Пользователь ' . $user->name . ' двинул на ' . $message;
+
+        $this->setMessageForAllExcludeAuthor($user, $responseAll->toString());
 
         return $userId . '__' . $response->toString();
     }
@@ -136,21 +144,21 @@ class Listener {
         if (!$user->name) {
             // Присвоим имя новому пользователю
             $user->name = $message;
-            $user->positionX = 3;
-            $user->positionY = 3;
+            $user->positionX = 4;
+            $user->positionY = 4;
             $response = new Response();
             $response->request = $message;
             $response->message = "Теперь ваше имя $message";
 
-            // Зададим нашу позицию.
+            // Зададим нашу позицию и позицию остальных чаров.
             $response->actionType = 'setPosition';
-            $response->actionValue = array('positionX' => $user->positionX, 'positionY' => $user->positionY);
-            // Передадим новому пользователю координаты остальных
-            $response->users = $this->getAllCharsExcludeAuthor($user);
+            $response->actionValue = $this->getAllPosition($user);
 
             // Оповестим всех, что появился новый.
             $responseAll = new Response();
-            $responseAll->users = array($user->name => $this->getChar($user));
+            $responseAll->userName = $user->name;
+            $responseAll->userActionType = 'connectChar';
+            $responseAll->userActionValue = array($user->name => $this->getChar($user));
             $responseAll->message = 'Появился пользователь ' . $user->name;
 
             $this->setMessageForAllExcludeAuthor($user, $responseAll->toString());
@@ -204,16 +212,16 @@ class Listener {
     public function userMove($user, $direction){
         switch ($direction) {
             case 'север':
-                $user->positionY -= $this->config['stepSize'];
+                $user->positionY -= 1;
                 break;
             case 'юг':
-                $user->positionY += $this->config['stepSize'];
+                $user->positionY += 1;
                 break;
             case 'запад':
-                $user->positionX -= $this->config['stepSize'];
+                $user->positionX -= 1;
                 break;
             case 'восток':
-                $user->positionX += $this->config['stepSize'];
+                $user->positionX += 1;
                 break;
 
             default:
@@ -223,12 +231,21 @@ class Listener {
     }
 
 
+    private function getAllPosition($user){
+        $canvasPositionX = $user->positionX * $this->config['stepSize'];
+        $canvasPositionY = $user->positionY * $this->config['stepSize'];
+
+        $positions['myPosition'] = array('positionX' => $canvasPositionX, 'positionY' => $canvasPositionY);
+        $positions['charsPosition'] = $this->getAllCharsPositionExcludeAuthor($user);
+        return $positions;
+    }
+
     /**
      *
      * @param TravmadUser $userAuthor
      * @return array
      */
-    private function getAllCharsExcludeAuthor($userAuthor){
+    private function getAllCharsPositionExcludeAuthor($userAuthor){
         if (count($this->users) < 2) {
             return null;
         }
@@ -247,12 +264,14 @@ class Listener {
      * @return string
      */
     private function getChar($user){
+        $canvasPositionX = $user->positionX * $this->config['stepSize'];
+        $canvasPositionY = $user->positionY * $this->config['stepSize'];
         $data = '
 [
     {
         "name": "'.$user->name.'",
-        "x": '.$user->positionX.',
-        "y": '.$user->positionY.'
+        "x": '.$canvasPositionX.',
+        "y": '.$canvasPositionY.'
     },
     [
         {
@@ -261,7 +280,7 @@ class Listener {
             "direction": "bottom",
             "type": "fixed",
             "trigger": "event_touch",
-            "speed": 3,
+            "speed": 1,
             "frequence": 0
         }
 
@@ -275,11 +294,11 @@ class Listener {
 
 
 
-    private function getMob(){
+    private function getMob($name){
         $data = '
 [
     {
-        "name": "monster1",
+        "name": "'.$name.'",
         "x": 19,
         "y": 21
     },

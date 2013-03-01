@@ -1104,6 +1104,18 @@ event.detectionEvents(64, "foo");
         return passable;
     },
 
+
+    moreMove: function(direction, count){
+        console.log(direction + '__' +count);
+        var self = this;
+        for (i = 0; i < count; i++) {
+            console.log('move iteration = ' + i);
+            this.move(direction);
+        }
+        self.animation('stop');
+    },
+
+
     /**
      * Move the event by specifying a path
  * @method move
