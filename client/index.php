@@ -317,7 +317,9 @@ $config = Config::getConfig();
                     rpg.player.bitmap.visible = false;
 
                     rpg.player.useMouse(true);
-                    rpg.player.setTypeMove("real");
+//                    rpg.player.setTypeMove("real");
+                    // Изменим тип хотьбы
+                    rpg.player.setTypeMove("tile");
 
                     // Set the scrolling on the player
                     rpg.setScreenIn("Player");
