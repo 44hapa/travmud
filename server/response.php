@@ -1,4 +1,5 @@
 <?php
+require_once('./../config.php');
 
 class Response{
 
@@ -18,7 +19,11 @@ class Response{
     public $mobActionValue = null;
     public $mobMessage = null;
 
-    public function __construct(){}
+    public $config;
+
+    public function __construct(){
+        $this->config = Config::getConfig();
+    }
 
     private function getTemplate(){
         $templateUserResponse = array(
@@ -57,11 +62,11 @@ class Response{
         $templateUserResponse['user']['message'] = $this->userMessage;
 
         $templateUserResponse['mob']['name'] = $this->mobName;
-        $templateUserResponse['mob']['actionType;'] = $this->mobActionType;
+        $templateUserResponse['mob']['actionType'] = $this->mobActionType;
         $templateUserResponse['mob']['actionValue'] = $this->mobActionValue;
         $templateUserResponse['mob']['message'] = $this->mobMessage;
 
-        return json_encode($templateUserResponse);
+        return json_encode($templateUserResponse) . $this->config['endBuferDelimiter'];
     }
 
 }

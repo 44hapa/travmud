@@ -5,8 +5,11 @@ require_once(BASE_PATH . '/dev.config.php');
 
 class Config{
     static private $config = array(
-        'maxBufferSize' => 2048,
-		'stepSize' => 4,
+    'maxBufferSize' => 2048,
+    'endBuferDelimiter' => "###",
+    'startBuferDelimiter' => "__",
+    'userDelimiter' => "_",
+        'stepSize' => 4,
         'websocket' => array(
             'addr' => '0.0.0.0',
             'port' => '8000',

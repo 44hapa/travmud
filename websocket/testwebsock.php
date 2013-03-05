@@ -18,13 +18,18 @@ class echoServer extends WebSocketServer {
 
 
     protected function sendToUsers($listenerBufer){
-        list($usersString, $message) = explode('__', trim($listenerBufer));
+        echo "\nmessage>>>>>>>>>>>>>>>\n";
+        $bufers = explode($this->config['endBuferDelimiter'], $listenerBufer);
+        print_r($bufers);
 
-        $users = explode('_', $usersString);
-
-        foreach ($users as $userId) {
-            $this->sendToUser($this->getUserById($userId), $message);
+        foreach ($bufers as $bufer) {
+            list($usersString, $message) = explode($this->config['startBuferDelimiter'], trim($bufer));
+            $users = explode($this->config['userDelimiter'], $usersString);
+            foreach ($users as $userId) {
+                $this->sendToUser($this->getUserById($userId), $message);
+            }
         }
+        echo "\nmessage<<<<<<<<<<<<<<<\n";
     }
 
     protected function sendToUsers_nc($listenerBufer){

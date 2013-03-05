@@ -39,6 +39,9 @@ class Listener {
 
             // Смотрим, есть ли сообщения для кого-нибудь в общем пуле.
             if ($this->messageForAll) {
+                echo "\nmessageForAll>>>>>>>>>\n";
+                var_dump($this->messageForAll);
+                echo "\nmessageForAll<<<<<<<<<\n";
                 socket_write($this->master, $this->messageForAll);
                 $this->messageForAll = null;
             }
@@ -47,6 +50,9 @@ class Listener {
                 // Смотрим, что там нам положил в сокет websocketServer
                 $responseToWebsocket = $this->generateResponse(trim($buffer));
                 // Пишем в websocketServer (он там дальше проксирует на клиента)
+                echo "\noneResponse>>>>>>>>>>>\n";
+                var_dump($responseToWebsocket);
+                echo "\noneResponse<<<<<<<<<<<\n";
                 socket_write($this->master, $responseToWebsocket);
             }
             else{
@@ -72,11 +78,11 @@ class Listener {
 
 
     private function generateResponse($requestFromWebsocket){
-        list($userId, $message) = explode('__', $requestFromWebsocket);
+        list($userId, $message) = explode($this->config['startBuferDelimiter'], $requestFromWebsocket);
         $message = trim($message);
         // Если пользователь еще не авторизован
         if ($messagesJSON = $this->generateResponseIfUserNotConnect($userId, $message)) {
-            return $userId . '__' . $messagesJSON;
+            return $userId . $this->config['startBuferDelimiter'] . $messagesJSON;
         }
         $user = $this->getUserByWsId($userId);
         if ('кто' == $message) {
@@ -89,14 +95,14 @@ class Listener {
             $response = new Response();
             $response->request = $message;
             $response->message = "Сейчас в травмаде:<br>$request";
-            return $userId . '__' . $response->toString();
+            return $userId . $this->config['startBuferDelimiter'] . $response->toString();
         }
         if ('map' == $message) {
             $response = new Response();
             $response->request = $message;
             $response->message = "Вот те карта";
             $response->partMap = $this->getMap();
-            return $userId . '__' . $response->toString();
+            return $userId . $this->config['startBuferDelimiter'] . $response->toString();
         }
         if ('mob' == $message) {
             $response = new Response();
@@ -106,7 +112,7 @@ class Listener {
             $response->mobName = 'mob1';
             $response->mobActionType = 'create';
             $response->mobActionValue = $this->getMob('mob1');
-            return $userId . '__' . $response->toString();
+            return $userId . $this->config['startBuferDelimiter'] . $response->toString();
         }
 
         // Движение пользователя
@@ -126,7 +132,7 @@ class Listener {
 
         $this->setMessageForAllExcludeAuthor($user, $responseAll->toString());
 
-        return $userId . '__' . $response->toString();
+        return $userId . $this->config['startBuferDelimiter'] . $response->toString();
     }
 
 
@@ -186,8 +192,8 @@ class Listener {
                 $usersKeys[] = $user->wsId;
             }
         }
-        $usersKeysString = implode('_', $usersKeys);
-        $this->messageForAll = $usersKeysString . '__' . $messageForAll;
+        $usersKeysString = implode($this->config['userDelimiter'], $usersKeys);
+        $this->messageForAll = $usersKeysString . $this->config['startBuferDelimiter'] . $messageForAll;
     }
 
 
