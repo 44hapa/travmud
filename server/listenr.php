@@ -2,6 +2,7 @@
 
 require_once('./../config.php');
 require_once(BASE_PATH . '/server/user.php');
+require_once(BASE_PATH . '/server/usersList.php');
 require_once(BASE_PATH . '/server/map.php');
 require_once(BASE_PATH . '/server/response.php');
 
@@ -11,8 +12,13 @@ class Listener {
     protected $master;
     protected $sockets = array();
     private $config;
-    private $users = array();
     private $messageForAll;
+
+    /**
+     *
+     * @var UsersList
+     */
+    private $usersList;
 
     /**
      *
@@ -21,6 +27,8 @@ class Listener {
     private $map;
 
     public function __construct($addr, $port, $bufferLength = 2048) {
+
+        $this->usersList = new UsersList();
         $this->map = Map::getInstance();
         $this->config = Config::getConfig();
         $this->maxBufferSize = $bufferLength;
@@ -84,10 +92,10 @@ class Listener {
         if ($messagesJSON = $this->generateResponseIfUserNotConnect($userId, $message)) {
             return $userId . $this->config['startBuferDelimiter'] . $messagesJSON;
         }
-        $user = $this->getUserByWsId($userId);
+        $user = $this->usersList->getUserByWsId($userId);
         if ('кто' == $message) {
             $request = '';
-            foreach ($this->users as $user) {
+            foreach ($this->usersList->getUsersList() as $user) {
                 $request .= "Пользователь ".$user->name . "[$user->wsId]<br>";
             }
             $request .= "<br><hr>";
@@ -136,11 +144,11 @@ class Listener {
     }
 
 
-    private function generateResponseIfUserNotConnect($userId, $message){
-        $user = $this->getUserByWsId($userId);
+    private function generateResponseIfUserNotConnect($wsId, $message){
+        $user = $this->usersList->getUserByWsId($wsId);
         if (!$user) {
-            $user = new TravmadUser($userId);
-            $this->users[] = $user;
+            $user = new TravmadUser($wsId);
+            $this->usersList->addUser($user);
 
             $response = new Response();
             $response->request = $message;
@@ -183,32 +191,17 @@ class Listener {
      */
     private function setMessageForAllExcludeAuthor($userAuthor, $messageForAll){
         // Если только один пользователи, и тот исключен - возвращаемся.
-        if (count($this->users) < 2) {
+        if (count($this->usersList->getUsersList()) < 2) {
             return;
         }
-        $usersKeys = array();
-        foreach ($this->users as $user) {
-            if ($userAuthor != $user) {
-                $usersKeys[] = $user->wsId;
-            }
-        }
+
+        $usersAsWsId = $this->usersList->getUsersAsWsId();
+        unset($usersAsWsId[$userAuthor->wsId]);
+
+        $usersKeys = array_keys($usersAsWsId);
         $usersKeysString = implode($this->config['userDelimiter'], $usersKeys);
         $this->messageForAll = $usersKeysString . $this->config['startBuferDelimiter'] . $messageForAll;
     }
-
-
-    private function getUserByWsId($wsId){
-        if (empty($this->users)) {
-            return false;
-        }
-        foreach ($this->users as $key => $user) {
-            if ($wsId == $user->wsId) {
-                return $user;
-            }
-        }
-        return false;
-    }
-
 
     /**
      *
@@ -252,15 +245,17 @@ class Listener {
      * @return array
      */
     private function getAllCharsPositionExcludeAuthor($userAuthor){
-        if (count($this->users) < 2) {
+        if (count($this->usersList->getUsersList()) < 2) {
             return null;
         }
-        $chars = array();
-        foreach ($this->users as $user) {
-            if ($user != $userAuthor) {
-                $chars[$user->name] = $this->getChar($user);
-            }
+
+        $userListAsName = $this->usersList->getUsersAsName();
+        unset($userListAsName[$userAuthor->name]);
+
+        foreach ($userListAsName as $user) {
+            $chars[$user->name] = $this->getChar($user);
         }
+
         return $chars;
     }
 
