@@ -30,7 +30,7 @@ class UsersList{
         return $this->getUsersAsField('wsId');
     }
 
-    public function getUsersAsField($field){
+    private function getUsersAsField($field){
         $usersAsField = array();
         foreach ($this->usersList as $user){
             $usersAsField[$user->{$field}] = $user;

@@ -9,7 +9,7 @@ class Config{
     'endBuferDelimiter' => "###",
     'startBuferDelimiter' => "__",
     'userDelimiter' => "_",
-        'stepSize' => 4,
+        'stepSize' => 1,
         'websocket' => array(
             'addr' => '0.0.0.0',
             'port' => '8000',
