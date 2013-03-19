@@ -97,15 +97,20 @@ $config = Config::getConfig();
 //=========================================== NEED REMAKE ===========================================
                         }
 
-//                        if (msgObj.mob){
-//                            dataFromSocket = msgObj.mob;
-//                            rpg.prepareEventAjax("monster1", false, dataFromSocket);
-//
-//                            // create monster
-//                            rpg.setEventPrepared("monster1", {x: 8, y: 13});
-//                            rpg.addEventPrepared("monster1");
-//
-//                        }
+                        // Что прислал моб
+                        if (msgObj.mob.name){
+                            var mobName = msgObj.mob.name;
+                            // какое действие осуществил моб
+
+                            // Подгружаем нового монстра
+                            if (msgObj.mob.actionType == 'create'){
+                                dataFromSocket = msgObj.mob.actionValue[mobName];
+                                rpg.prepareEventAjax(mobName, false, dataFromSocket);
+                                // create monster
+                                rpg.setEventPrepared(mobName, {x: 8, y: 13});
+                                rpg.addEventPrepared(mobName);
+                            }
+                        }
 
                         // Смотрим, прислал ли что какой-нибудь чар (не мы!!!)
                         if (msgObj.user.name){
@@ -220,6 +225,9 @@ $config = Config::getConfig();
                     $('#sound').trigger("click");
 //                }
 
+                // Место анимации (откуда отсчитываем координаты)
+                rpg.setGraphicAnimation(192, 192);
+
                 // Adding animation from file "Database.js"
                 rpg.addAnimation(Database.animation['EM Exclamation']);
                 rpg.addAnimation(Database.animation['Darkness 1']);
@@ -314,7 +322,10 @@ $config = Config::getConfig();
 
                 function init() {
                     // Сделаем себя невидимыми
-                    rpg.player.bitmap.visible = false;
+//                    rpg.player.bitmap.visible = false;
+
+                    //Дадим мечик (он забинден на букву "а")
+                    rpg.setSwitches(2, true);
 
                     rpg.player.useMouse(true);
 //                    rpg.player.setTypeMove("real");
@@ -323,6 +334,10 @@ $config = Config::getConfig();
 
                     // Set the scrolling on the player
                     rpg.setScreenIn("Player");
+
+                    // тестилка анимации
+//                    rpg.animations['Darkness 1'].setPosition(10,10);
+//                    rpg.animations['Darkness 1'].play();
                 }
 
                 function createMonster(name, x, y) {

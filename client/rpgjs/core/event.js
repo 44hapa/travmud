@@ -1059,7 +1059,7 @@ event.detectionEvents(64, "foo");
             // if (self.canMove(dir)) {
             self.move(dir, function() {
 //                console.log('bobrik go to: '  + dir);
-                console.log(self);
+//                console.log(self);
                 rand();
             }, true);
         // }

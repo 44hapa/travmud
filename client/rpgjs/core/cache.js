@@ -225,17 +225,18 @@ Cache.event = function(name, callback_event, map_name, custompath, noCache, data
         Cache.propretiesEvent[name] = event;
         callback_event(event);
     }
-
-//	else if (Cache.propretiesEvent[name] && !noCache) {
-//		callback_event(Cache.propretiesEvent[name]);
-//	}
-//	else {
-//		Cache.ajax(path, function(ret) {
-//			var event = JSON.parse(ret);
-//			Cache.propretiesEvent[name] = event;
-//			callback_event(event);
-//		});
-//	}
+// Если закомитить - пострадает обратная совместимость!!! =============
+	else if (Cache.propretiesEvent[name] && !noCache) {
+		callback_event(Cache.propretiesEvent[name]);
+	}
+	else {
+		Cache.ajax(path, function(ret) {
+			var event = JSON.parse(ret);
+			Cache.propretiesEvent[name] = event;
+			callback_event(event);
+		});
+	}
+// Если закомитить - пострадает обратная совместимость!!! =============
 }
 
 /**
