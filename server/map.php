@@ -13,6 +13,76 @@ class Map {
      */
     static private $instance;
 
+
+    private function __construct() {
+    }
+
+
+    /**
+     *
+     * @param string $zoneName
+     * @return Zone
+     */
+    public function getZone($zoneName){
+        return $this->map[$zoneName];
+    }
+
+
+    /**
+     *
+     * @param string $direction
+     * @param TravmadUser $user
+     * @return boolean
+     */
+    public function tryMoveUser($direction, TravmadUser $user){
+        /*@var Zone $zone*/
+        $zone = $this->map[$user->zone];
+        switch ($direction) {
+            case 'север':
+                $result = $this->moveUser($user, $zone, $user->positionX, $user->positionY - 1);
+                break;
+            case 'юг':
+                $result = $this->moveUser($user, $zone, $user->positionX, $user->positionY + 1);
+                break;
+            case 'запад':
+                $result = $this->moveUser($user, $zone, $user->positionX - 1, $user->positionY);
+                break;
+            case 'восток':
+                $result = $this->moveUser($user, $zone, $user->positionX + 1, $user->positionY);
+                break;
+
+            default:
+                $result = false;
+                break;
+        }
+        return $result;
+    }
+
+    private function catMove(Zone $zone, $newX, $newY){
+        return $zone->canMove($newX, $newY);
+    }
+
+    /**
+     *
+     * @param TravmadUser $user
+     * @param Zone $zone
+     * @param int $newX
+     * @param int $newY
+     * @return boolean
+     */
+    private function moveUser(TravmadUser $user, Zone $zone, $newX, $newY){
+        if ($this->catMove($zone, $newX, $newY)){
+            $zone->pullChar($user, $user->positionX, $user->positionY);
+            $zone->putChar($user, $newX, $newY);
+
+            $user->positionX = $newX;
+            $user->positionY = $newY;
+
+            return true;
+        }
+        return false;
+    }
+
     /**
      *
      * @return Map
@@ -23,7 +93,7 @@ class Map {
         }
         self::$instance = new self();
         $zone = new Zone();
-        self::$instance->map = array('example' => $zone->zone);
+        self::$instance->map = array('example' => $zone);
 
         return self::$instance;
     }
@@ -32,7 +102,7 @@ class Map {
     public function toString(){
         $map = array();
         foreach ($this->map as $zoneName=>$zone){
-            foreach ($zone as $x => $zoneXpropertys){
+            foreach ($zone->zone as $x => $zoneXpropertys){
                 foreach ($zoneXpropertys as $y => $cellProperty){
                     $map[$x][$y] = array(
                         0 => $cellProperty[Zone::CELL_COVER],

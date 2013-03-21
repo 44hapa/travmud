@@ -24,12 +24,19 @@ class Zone {
     }
 
 
-    public function putChar($charId, $charName, $x, $y){
-        $this->zone[$x][$y][self::CELL_CHARS][$charId] = $charName;
+    public function canMove($newX, $newY){
+        if (isset($this->zone[$newX][$newY])){
+            return true;
+        }
+        return false;
     }
 
-    public function pullChar($charId, $x, $y){
-        unset($this->zone[$x][$y][self::CELL_CHARS][$charId]);
+    public function putChar(TravmadUser $user, $x, $y){
+        $this->zone[$x][$y][self::CELL_CHARS][$user->wsId] = $user->name;
+    }
+
+    public function pullChar(TravmadUser $user, $x, $y){
+        unset($this->zone[$x][$y][self::CELL_CHARS][$user->wsId]);
     }
 
 }

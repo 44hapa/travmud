@@ -18,6 +18,13 @@ class Action{
      */
     private $userAuthor;
 
+
+    /**
+     *
+     * @var Map
+     */
+    private $map;
+
     private $messageOne;
     private $messageMass;
 
@@ -27,11 +34,11 @@ class Action{
     /**
      *
      * @param string $requestFromWebsocket
-     * @param UsersList $usersList
      */
-    public function __construct($requestFromWebsocket, UsersList $usersList){
+    public function __construct($requestFromWebsocket){
         $this->config = Config::getConfig();
-        $this->usersList = $usersList;
+        $this->usersList = UsersList::getInstance();
+        $this->map = Map::getInstance();
         list($this->userAuthorWsId, $requestWsMessage) = explode($this->config['startBuferDelimiter'], $requestFromWebsocket);
         $this->requestWsMessage = trim($requestWsMessage);
         $this->userAuthor = $this->usersList->getUserByWsId($this->userAuthorWsId);
@@ -110,11 +117,20 @@ class Action{
         // Движение пользователя
         $response = new Response();
         $response->request = $this->requestWsMessage;
+
+        if (!$this->map->tryMoveUser($this->requestWsMessage, $this->userAuthor)){
+            $response->actionType = null;
+            $response->actionValue = null;
+            $response->message = "Вы не можете двигаться в этом направлении";
+
+            $this->messageOne = $response->toString();
+            return;
+        }
+
         $response->actionType = 'move';
         $response->actionValue = $this->requestWsMessage;
         $response->message = "Вы двигаетесь на {$this->requestWsMessage}";
 
-        $this->userAuthor->move($this->requestWsMessage);
         $this->messageOne = $response->toString();
 
         // Оповестим всех, что мы двигаемся.
@@ -140,28 +156,32 @@ class Action{
 
 
     private function authorizeUser(){
-            // Присвоим имя новому пользователю
-            $this->userAuthor->name = $this->requestWsMessage;
-            $this->userAuthor->positionX = 4;
-            $this->userAuthor->positionY = 4;
-            $response = new Response();
-            $response->request = $this->requestWsMessage;
-            $response->message = "Теперь ваше имя {$this->requestWsMessage}";
+        // Присвоим имя новому пользователю
+        $this->userAuthor->name = $this->requestWsMessage;
+        $this->userAuthor->positionX = 4;
+        $this->userAuthor->positionY = 4;
+        $this->userAuthor->zone = 'example';
+        $response = new Response();
+        $response->request = $this->requestWsMessage;
+        $response->message = "Теперь ваше имя {$this->requestWsMessage}";
 
-            // Зададим нашу позицию и позицию остальных чаров.
-            $response->actionType = 'setPosition';
-            $response->actionValue = $this->getAllPosition($this->userAuthor);
+        // Зададим нашу позицию и позицию остальных чаров.
+        $response->actionType = 'setPosition';
+        $response->actionValue = $this->getAllPosition($this->userAuthor);
 
-            $this->messageOne = $response->toString();
+        // Поместим чара в зону example
+        $this->map->getZone($this->userAuthor->zone)->putChar($this->userAuthor, $this->userAuthor->positionX, $this->userAuthor->positionY);
 
-            // Оповестим всех, что появился новый.
-            $responseAll = new Response();
-            $responseAll->userName = $this->userAuthor->name;
-            $responseAll->userActionType = 'connectChar';
-            $responseAll->userActionValue = array($this->userAuthor->name => $this->userAuthor->toStringAsMob());
-            $responseAll->message = 'Появился пользователь ' . $this->userAuthor->name;
+        $this->messageOne = $response->toString();
 
-            $this->setMessageForAllExcludeAuthor($this->userAuthor, $responseAll->toString());
+        // Оповестим всех, что появился новый.
+        $responseAll = new Response();
+        $responseAll->userName = $this->userAuthor->name;
+        $responseAll->userActionType = 'connectChar';
+        $responseAll->userActionValue = array($this->userAuthor->name => $this->userAuthor->toStringAsMob());
+        $responseAll->message = 'Появился пользователь ' . $this->userAuthor->name;
+
+        $this->setMessageForAllExcludeAuthor($this->userAuthor, $responseAll->toString());
     }
 
     /**
@@ -214,42 +234,7 @@ class Action{
     }
 
     private function getMap(){
-        $map = Map::getInstance();
-        return $map->toString();
-
-        $data = '{
-            "map": [
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
-                [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]]
-            ],
-            "propreties": {
-                "1505": [0, 0],
-                "150": [0, 15]
-                }
-            }';
-
-        // Да да.. вот так я удаляю табы и перевод строк.. и пробелы.
-        $data = json_decode($data, true);
-        return json_encode($data);
+        return $this->map->toString();
     }
 
     private function getMob($name){

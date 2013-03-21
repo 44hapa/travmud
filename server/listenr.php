@@ -15,21 +15,9 @@ class Listener {
     private $config;
     private $messageForAll;
 
-    /**
-     *
-     * @var UsersList
-     */
-    private $usersList;
-
-    /**
-     *
-     * @var Map
-     */
-    private $map;
-
     public function __construct($addr, $port, $bufferLength = 2048) {
-        $this->usersList = new UsersList();
-        $this->map = Map::getInstance();
+        UsersList::getInstance();
+        Map::getInstance();
         $this->config = Config::getConfig();
         $this->maxBufferSize = $bufferLength;
         $this->master = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("Failed: socket_create()");
@@ -86,7 +74,7 @@ class Listener {
 
 
     private function generateResponse($requestFromWebsocket){
-        $action = new Action($requestFromWebsocket, $this->usersList);
+        $action = new Action($requestFromWebsocket);
         $action->execute();
         $this->messageForAll = $action->getMessageMass();
         return $action->getMessageOne();

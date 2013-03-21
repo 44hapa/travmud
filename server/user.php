@@ -15,37 +15,11 @@ class TravmadUser {
 
     public $positionX;
     public $positionY;
+    public $zone;
 
     public function __construct($wsId){
         $this->wsId = $wsId;
         $this->config = Config::getConfig();
-    }
-
-
-    /**
-     *
-     * @param string $direction
-     * @return \TravmadUser
-     */
-    public function move($direction){
-        switch ($direction) {
-            case 'север':
-                $this->positionY -= 1;
-                break;
-            case 'юг':
-                $this->positionY += 1;
-                break;
-            case 'запад':
-                $this->positionX -= 1;
-                break;
-            case 'восток':
-                $this->positionX += 1;
-                break;
-
-            default:
-                break;
-        }
-        return $this;
     }
 
 

@@ -5,6 +5,24 @@ class UsersList{
 
     private $usersList = array();
 
+
+    static private $instance;
+
+
+
+    private function __construct() {
+    }
+
+
+    static public function getInstance(){
+        if (!empty(self::$instance)){
+            return self::$instance;
+        }
+        self::$instance = new self();
+        return self::$instance;
+    }
+
+
     public function addUser(TravmadUser $user){
         $this->usersList[] = $user;
     }
