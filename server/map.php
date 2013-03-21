@@ -1,14 +1,11 @@
 <?php
 
-class Map extends SplFixedArray{
+require_once('./../config.php');
+require_once(BASE_PATH . '/server/zone.php');
 
-    const COUNT_FILED_OF_CELL = 5;
+class Map {
 
-    const X_COORDINAT = 0;
-    const Y_COORDINAT = 1;
-    const ID_MOBS = 2;
-    const ID_USERS = 3;
-    const ID_STUFF = 4;
+    public $map = array();
 
     /**
      *
@@ -20,31 +17,41 @@ class Map extends SplFixedArray{
      *
      * @return Map
      */
-    static public function getInstance($xCount = 10, $yCount = 10){
+    static public function getInstance(){
         if (!empty(self::$instance)) {
             return self::$instance;
         }
-        self::$instance = new self($count = $xCount * $yCount);
-        $x = 0;
-        $y = 0;
+        self::$instance = new self();
+        $zone = new Zone();
+        self::$instance->map = array('example' => $zone->zone);
 
-        for ($i = 0; $i<$count; $i++){
-            $cell = new SplFixedArray(self::COUNT_FILED_OF_CELL);
-            $cell[self::X_COORDINAT] = $x;
-            $cell[self::Y_COORDINAT] = $y;
-            $cell[self::ID_MOBS] = '1,2,3';
-            $cell[self::ID_USERS] = null;
-            $cell[self::ID_STUFF] = '4,5,6';
-            self::$instance[$i] = $cell;
-            
-            $x++;
-            if ($x >= $xCount){
-                $x = 0;
-                $y++;
+        return self::$instance;
+    }
+
+
+    public function toString(){
+        $map = array();
+        foreach ($this->map as $zoneName=>$zone){
+            foreach ($zone as $x => $zoneXpropertys){
+                foreach ($zoneXpropertys as $y => $cellProperty){
+                    $map[$x][$y] = array(
+                        0 => $cellProperty[Zone::CELL_COVER],
+                        1 => null,
+                        2 => null,
+                    );
+                }
             }
         }
 
-        return self::$instance;
+        $result = array(
+            'map' => $map,
+            'propreties' => array(
+                150 => array(0, 15),
+                1505 => array(0,0),
+            )
+        );
+
+        return json_encode($result);
     }
 
 }

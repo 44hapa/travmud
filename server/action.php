@@ -1,5 +1,6 @@
 <?php
 require_once('./../config.php');
+require_once(BASE_PATH . '/server/map.php');
 
 class Action{
 
@@ -213,6 +214,9 @@ class Action{
     }
 
     private function getMap(){
+        $map = Map::getInstance();
+        return $map->toString();
+
         $data = '{
             "map": [
                 [[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null],[1505,null,null]],
