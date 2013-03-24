@@ -56,15 +56,21 @@ class Action{
             return;
         }
 
-        if ('кто' == $this->requestWsMessage) {
+        list($requestParam1,$requestParam2) = array_pad(explode(" ", $this->requestWsMessage,2), 2, null);
+
+        if ('кто' == $requestParam1) {
             $this->showUsers();
             return;
         }
-        if ('map' == $this->requestWsMessage) {
+        if ('map' == $requestParam1) {
             $this->showMap();
             return;
         }
-        if ('mob' == $this->requestWsMessage) {
+        if ('mob' == $requestParam1) {
+            $this->showMob();
+            return;
+        }
+        if ('убить' == $requestParam1) {
             $this->showMob();
             return;
         }

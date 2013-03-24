@@ -18,6 +18,7 @@ class echoServer extends WebSocketServer {
 
 
     protected function sendToUsers($listenerBufer){
+        $listenerBufer = substr($listenerBufer, 0, -strlen($this->config['endBuferDelimiter']));
         echo "\nmessage>>>>>>>>>>>>>>>\n";
         $bufers = explode($this->config['endBuferDelimiter'], $listenerBufer);
         print_r($bufers);

@@ -338,6 +338,10 @@ $config = Config::getConfig();
                     // тестилка анимации
 //                    rpg.animations['Darkness 1'].setPosition(10,10);
 //                    rpg.animations['Darkness 1'].play();
+//
+//                    rpg.player.setStopDirection('up') -- изменение направления персонажа
+//                    rpg.player.action('myattack') -- махать мечем
+
                 }
 
                 function createMonster(name, x, y) {
