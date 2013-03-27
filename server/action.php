@@ -71,7 +71,7 @@ class Action{
             return;
         }
         if ('убить' == $requestParam1) {
-            $this->showMob();
+            $this->kill($requestParam2);
             return;
         }
 
@@ -87,6 +87,41 @@ class Action{
         return $this->messageMass;
     }
 
+
+
+    private function kill($victimName){
+        $response = new Response();
+        $response->request = $this->requestWsMessage;
+
+        if (empty($victimName)) {
+            $response->message =  "Убить кого?!";
+            $this->messageOne = $response->toString();
+            return;
+        }
+
+        if (!$victim = $this->usersList->getUserByName($victimName)) {
+            $response->message =  "Нет такого чара";
+            $this->messageOne = $response->toString();
+            return;
+        }
+
+        $interaction = new Interaction($this->userAuthor);
+
+        if ($interaction->tryStryke($victim)) {
+            $response->message =  "Ты отоварил $victimName";
+            $this->messageOne = $response->toString();
+
+            $responseVictim = new Response();
+            $responseVictim->userName = $this->userAuthor->name;
+            $responseVictim->userActionType = 'kill';
+            $responseVictim->userActionValue = 'strike';
+            $responseVictim->message = 'Пользователь ' . $this->userAuthor->name .' напал на тебя!';
+            $this->messageMass = $victim->wsId . $this->config['startBuferDelimiter'] . $responseVictim->toString();
+            return;
+        }
+
+        return;
+    }
 
     private function showMob(){
         $response = new Response();

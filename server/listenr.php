@@ -6,6 +6,8 @@ require_once(BASE_PATH . '/server/usersList.php');
 require_once(BASE_PATH . '/server/map.php');
 require_once(BASE_PATH . '/server/response.php');
 require_once(BASE_PATH . '/server/action.php');
+require_once(BASE_PATH . '/server/interaction.php');
+require_once(BASE_PATH . '/server/battle.php');
 
 class Listener {
 
@@ -18,6 +20,7 @@ class Listener {
     public function __construct($addr, $port, $bufferLength = 2048) {
         UsersList::getInstance();
         Map::getInstance();
+        Battle::getInstance();
         $this->config = Config::getConfig();
         $this->maxBufferSize = $bufferLength;
         $this->master = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("Failed: socket_create()");
@@ -32,6 +35,8 @@ class Listener {
         while(1) {
             @socket_select($read, $write, $except, 0, 1);
             $numBytes = @socket_recv($this->master, $buffer, 24000, MSG_DONTWAIT); // MSG_DONTWAIT - что бы не блокировал
+
+            $this->periodicManipulation();
 
             // Смотрим, есть ли сообщения для кого-нибудь в общем пуле.
             if ($this->messageForAll) {
@@ -56,19 +61,6 @@ class Listener {
             }
 }
 
-
-//        $i = 0;
-//        while ($i < 30) {
-//            sleep(1);
-//            // Читаем, что там нам положил в сокет websocketServer
-//            $requestFromWebsocket = trim(socket_read($this->master, $this->maxBufferSize));
-//
-//            // Пишем в websocketServer (он там дальше проксирует на клиента)
-//            $responseToWebsocket = $this->generateResponse($requestFromWebsocket);
-//            socket_write($this->master, $responseToWebsocket);
-//            var_dump($responseToWebsocket);
-//            $i++;
-//        }
         socket_close($this->master);
     }
 
@@ -78,6 +70,12 @@ class Listener {
         $action->execute();
         $this->messageForAll = $action->getMessageMass();
         return $action->getMessageOne();
+    }
+
+    private function periodicManipulation(){
+        $battle = Battle::getInstance();
+        $battle->execute();
+        $this->personalMessages = $battle->getMessagesPersonal();
     }
 
 }

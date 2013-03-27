@@ -36,6 +36,15 @@ class UsersList{
         return null;
     }
 
+    public function getUserByName($name){
+        foreach ($this->usersList as $user) {
+            if ($name == $user->name) {
+                return $user;
+            }
+        }
+        return null;
+    }
+
     public function getUsersList(){
         return $this->usersList;
     }
