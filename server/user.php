@@ -17,6 +17,11 @@ class TravmadUser {
     public $positionY;
     public $zone;
 
+    public $enemyType;
+    public $enemyIdent;
+
+    public $health = 200;
+
     public function __construct($wsId){
         $this->wsId = $wsId;
         $this->config = Config::getConfig();
@@ -37,6 +42,13 @@ class TravmadUser {
         $options['trigger'] = 'event_touch';
         $options['speed'] = 1;
         $options['frequence'] = 0;
+
+        $action_battle['area'] = 2;
+        $action_battle['hp_max'] = 300;
+        $action_battle['animation_death'] = 'Darkness 1';
+        $action_battle['actions'] = array('attack_ennemy');
+
+        $options['action_battle'] = $action_battle;
 
         $data = array($main, array($options));
 

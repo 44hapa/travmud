@@ -27,6 +27,11 @@ class UsersList{
         $this->usersList[] = $user;
     }
 
+    /**
+     *
+     * @param type $wsId
+     * @return TravmadUser | null
+     */
     public function getUserByWsId($wsId){
         foreach ($this->usersList as $user) {
             if ($wsId == $user->wsId) {

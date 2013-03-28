@@ -15,7 +15,14 @@ class Listener {
     protected $master;
     protected $sockets = array();
     private $config;
-    private $messageForAll;
+    static public $mainCounter = 0;
+
+    /**
+     * Сообщение сервера игры (уже подготовленное для сокета)
+     * 
+     * @var string
+     */
+    private $serverMessages;
 
     public function __construct($addr, $port, $bufferLength = 2048) {
         UsersList::getInstance();
@@ -33,28 +40,24 @@ class Listener {
         $write  = NULL;
         $except = NULL;
         while(1) {
+            self::$mainCounter++;
             @socket_select($read, $write, $except, 0, 1);
             $numBytes = @socket_recv($this->master, $buffer, 24000, MSG_DONTWAIT); // MSG_DONTWAIT - что бы не блокировал
 
-            $this->periodicManipulation();
-
             // Смотрим, есть ли сообщения для кого-нибудь в общем пуле.
-            if ($this->messageForAll) {
-                echo "\nmessageForAll>>>>>>>>>\n";
-                var_dump($this->messageForAll);
-                echo "\nmessageForAll<<<<<<<<<\n";
-                socket_write($this->master, $this->messageForAll);
-                $this->messageForAll = null;
+            if ($this->serverMessages) {
+                echo "\nserverMessages>>>>>>>>>\n";
+                var_dump($this->serverMessages);
+                echo "\nserverMessages<<<<<<<<<\n";
+                socket_write($this->master, $this->serverMessages);
+                $this->serverMessages = null;
             }
 
+            $this->periodicManipulation();
+
             if ($numBytes > 0) {
-                // Смотрим, что там нам положил в сокет websocketServer
-                $responseToWebsocket = $this->generateResponse(trim($buffer));
-                // Пишем в websocketServer (он там дальше проксирует на клиента)
-                echo "\noneResponse>>>>>>>>>>>\n";
-                var_dump($responseToWebsocket);
-                echo "\noneResponse<<<<<<<<<<<\n";
-                socket_write($this->master, $responseToWebsocket);
+                // Обработаем данные, которые пришли  в сокет websocketServer
+                $this->beginProcess(trim($buffer));
             }
             else{
                 usleep(250000);
@@ -65,17 +68,18 @@ class Listener {
     }
 
 
-    private function generateResponse($requestFromWebsocket){
+    private function beginProcess($requestFromWebsocket){
         $action = new Action($requestFromWebsocket);
         $action->execute();
-        $this->messageForAll = $action->getMessageMass();
-        return $action->getMessageOne();
+        $this->serverMessages .= $action->getMessageMass();
+        $this->serverMessages .= $action->getMessageOne();
     }
 
     private function periodicManipulation(){
         $battle = Battle::getInstance();
         $battle->execute();
-        $this->personalMessages = $battle->getMessagesPersonal();
+        $this->serverMessages .= $battle->getMessagesOne();
+        $this->serverMessages .= $battle->getMessagesMass();
     }
 
 }

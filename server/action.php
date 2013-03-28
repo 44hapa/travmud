@@ -109,6 +109,8 @@ class Action{
 
         if ($interaction->tryStryke($victim)) {
             $response->message =  "Ты отоварил $victimName";
+            $response->actionType = "stryke";
+            $response->actionValue = $victimName;
             $this->messageOne = $response->toString();
 
             $responseVictim = new Response();

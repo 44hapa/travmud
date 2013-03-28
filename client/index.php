@@ -159,6 +159,31 @@ $config = Config::getConfig();
                         }
 
 
+                        // Мы наносим удар
+                        if (msgObj.actionType == 'strikeSword'){
+                            rpg.player.action('myattack');
+                        }
+
+                        // Враг наносит удар
+                        if (msgObj.actionType == 'gotStrikeSword'){
+                            var charObj = rpg.getEventByName(msgObj.user.name);
+                            charObj.action('attack_ennemy');
+                        }
+
+                        // Мы умерли
+                        if (msgObj.actionType == 'die'){
+                            rpg.animations['Darkness 1'].setPosition(rpg.player.x, rpg.player.y);
+                            rpg.animations['Darkness 1'].play();
+                            rpg.player.bitmap.visible = false;
+                        }
+
+                        // Мы убили
+                        if (msgObj.actionType == 'killed'){
+                            var charObj = rpg.getEventByName(msgObj.user.name);
+                            rpg.animations['Darkness 1'].setPosition(charObj.x, charObj.y);
+                            rpg.animations['Darkness 1'].play();
+                            charObj.bitmap.visible = false;
+                        }
 
                     };
                     socket.onclose   = function(msg) {

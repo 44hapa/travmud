@@ -3,6 +3,14 @@
 class Interaction{
 
 
+    const CHAR = 'char';
+    const MOB = 'mob';
+
+    const STRIKE_SWORD = 'strikeSword';
+    const GOT_DAMAGE_STRIKE_SWORD = 'gotStrikeSword';
+
+
+
     /**
      *
      * @var TravmadUser
@@ -12,9 +20,17 @@ class Interaction{
 
     /**
      *
+     * @var Battle
+     */
+    private $battle;
+
+
+    /**
+     *
      * @param TravmadUser $user
      */
     public function __construct(TravmadUser $user){
+        $this->battle = Battle::getInstance();
         $this->user = $user;
     }
 
@@ -41,7 +57,14 @@ class Interaction{
 
 
     private function strike(TravmadUser $victim){
-        
+        $this->user->enemyType = self::CHAR;
+        $this->user->enemyIdent = $victim->wsId;
+
+        $victim->enemyType = self::CHAR;
+        $victim->enemyIdent = $this->user->wsId;
+
+        $this->battle->addFighter(self::CHAR, $this->user->wsId);
+        $this->battle->addFighter(self::CHAR, $victim->wsId);
     }
 
 }
