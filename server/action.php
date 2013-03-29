@@ -25,8 +25,7 @@ class Action{
      */
     private $map;
 
-    private $messageOne;
-    private $messageMass;
+    private $responseMessage;
 
     private $userAuthorWsId;
     private $requestWsMessage;
@@ -79,29 +78,27 @@ class Action{
         return;
     }
 
-    public function getMessageOne(){
-        return $this->userAuthor->wsId . $this->config['startBuferDelimiter'] . $this->messageOne;
+    public function getResponseMessage(){
+        return $this->responseMessage;
     }
 
-    public function getMessageMass(){
-        return $this->messageMass;
+    private function addResponseMessage($responseMessage){
+        $this->responseMessage .= $responseMessage;
     }
-
-
 
     private function kill($victimName){
-        $response = new Response();
+        $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
 
         if (empty($victimName)) {
             $response->message =  "Убить кого?!";
-            $this->messageOne = $response->toString();
+            $this->addResponseMessage($response->toString());
             return;
         }
 
         if (!$victim = $this->usersList->getUserByName($victimName)) {
             $response->message =  "Нет такого чара";
-            $this->messageOne = $response->toString();
+            $this->addResponseMessage($response->toString());
             return;
         }
 
@@ -111,14 +108,14 @@ class Action{
             $response->message =  "Ты отоварил $victimName";
             $response->actionType = "stryke";
             $response->actionValue = $victimName;
-            $this->messageOne = $response->toString();
+            $this->addResponseMessage($response->toString());
 
-            $responseVictim = new Response();
+            $responseVictim = new Response($victim);
             $responseVictim->userName = $this->userAuthor->name;
             $responseVictim->userActionType = 'kill';
             $responseVictim->userActionValue = 'strike';
             $responseVictim->message = 'Пользователь ' . $this->userAuthor->name .' напал на тебя!';
-            $this->messageMass = $victim->wsId . $this->config['startBuferDelimiter'] . $responseVictim->toString();
+            $this->addResponseMessage($responseVictim->toString());
             return;
         }
 
@@ -126,21 +123,21 @@ class Action{
     }
 
     private function showMob(){
-        $response = new Response();
+        $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
         $response->message =  "Вот те монстер";
         $response->mobName = 'mob1';
         $response->mobActionType = 'create';
         $response->mobActionValue = array('mob1' => $this->getMob('mob1'));
-        $this->messageOne = $response->toString();
+        $this->addResponseMessage($response->toString());
     }
 
     private function showMap(){
-        $response = new Response();
+        $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
         $response->message = "Вот те карта";
         $response->partMap = $this->getMap();
-        $this->messageOne = $response->toString();
+        $this->addResponseMessage($response->toString());
     }
 
     private function showUsers(){
@@ -150,15 +147,15 @@ class Action{
         }
         $request .= "<br><hr>";
 
-        $response = new Response();
+        $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
         $response->message = "Сейчас в травмаде:<br>$request";
-        $this->messageOne = $response->toString();
+        $this->addResponseMessage($response->toString());
     }
 
     private function moveUser(){
         // Движение пользователя
-        $response = new Response();
+        $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
 
         if (!$this->map->tryMoveUser($this->requestWsMessage, $this->userAuthor)){
@@ -166,7 +163,7 @@ class Action{
             $response->actionValue = null;
             $response->message = "Вы не можете двигаться в этом направлении";
 
-            $this->messageOne = $response->toString();
+            $this->addResponseMessage($response->toString());
             return;
         }
 
@@ -174,27 +171,28 @@ class Action{
         $response->actionValue = $this->requestWsMessage;
         $response->message = "Вы двигаетесь на {$this->requestWsMessage}";
 
-        $this->messageOne = $response->toString();
+        $this->addResponseMessage($response->toString());
 
         // Оповестим всех, что мы двигаемся.
-        $responseAll = new Response();
+        $subscribers = $this->usersList->getUsersExludeAsWsId($this->userAuthor->wsId);
+        $responseAll = new Response($subscribers);
         $responseAll->userName = $this->userAuthor->name;
         $responseAll->userActionType = 'move';
         $responseAll->userActionValue = $this->requestWsMessage;
         $responseAll->message = 'Пользователь ' . $this->userAuthor->name . ' двинул на ' . $this->requestWsMessage;
 
-        $this->setMessageForAllExcludeAuthor($this->userAuthor, $responseAll->toString());
+        $this->addResponseMessage($responseAll->toString());
     }
 
     private function connectNewUser(){
         $this->userAuthor = new TravmadUser($this->userAuthorWsId);
         $this->usersList->addUser($this->userAuthor);
 
-        $response = new Response();
+        $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
         $response->message = 'Введите имя';
 
-        $this->messageOne = $response->toString();
+        $this->addResponseMessage($response->toString());
     }
 
 
@@ -204,7 +202,7 @@ class Action{
         $this->userAuthor->positionX = 4;
         $this->userAuthor->positionY = 4;
         $this->userAuthor->zone = 'example';
-        $response = new Response();
+        $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
         $response->message = "Теперь ваше имя {$this->requestWsMessage}";
 
@@ -215,36 +213,17 @@ class Action{
         // Поместим чара в зону example
         $this->map->getZone($this->userAuthor->zone)->putChar($this->userAuthor, $this->userAuthor->positionX, $this->userAuthor->positionY);
 
-        $this->messageOne = $response->toString();
+        $this->addResponseMessage($response->toString());
 
         // Оповестим всех, что появился новый.
-        $responseAll = new Response();
+        $subscribers = $this->usersList->getUsersExludeAsWsId($this->userAuthor->wsId);
+        $responseAll = new Response($subscribers);
         $responseAll->userName = $this->userAuthor->name;
         $responseAll->userActionType = 'connectChar';
         $responseAll->userActionValue = array($this->userAuthor->name => $this->userAuthor->toStringAsMob());
         $responseAll->message = 'Появился пользователь ' . $this->userAuthor->name;
 
-        $this->setMessageForAllExcludeAuthor($this->userAuthor, $responseAll->toString());
-    }
-
-    /**
-     *
-     * @param TravmadUser $userAuthor
-     * @param string $messageForAll
-     * @return string
-     */
-    private function setMessageForAllExcludeAuthor($userAuthor, $messageForAll){
-        // Если только один пользователи, и тот исключен - возвращаемся.
-        if (count($this->usersList->getUsersList()) < 2) {
-            return;
-        }
-
-        $usersAsWsId = $this->usersList->getUsersAsWsId();
-        unset($usersAsWsId[$userAuthor->wsId]);
-
-        $usersKeys = array_keys($usersAsWsId);
-        $usersKeysString = implode($this->config['userDelimiter'], $usersKeys);
-        $this->messageMass = $usersKeysString . $this->config['startBuferDelimiter'] . $messageForAll;
+        $this->addResponseMessage($responseAll->toString());
     }
 
     private function getAllPosition($user){

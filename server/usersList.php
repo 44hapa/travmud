@@ -70,4 +70,14 @@ class UsersList{
         return $usersAsField;
     }
 
+
+    public function getUsersExludeAsWsId($excludeWsIds){
+        $excludeWsIds = (array)$excludeWsIds;
+        $usersExclude = $this->getUsersAsWsId();
+        foreach ($excludeWsIds as $wsId) {
+            unset($usersExclude[$wsId]);
+        }
+        return $usersExclude;
+    }
+
 }

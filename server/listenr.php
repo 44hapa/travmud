@@ -71,8 +71,7 @@ class Listener {
     private function beginProcess($requestFromWebsocket){
         $action = new Action($requestFromWebsocket);
         $action->execute();
-        $this->serverMessages .= $action->getMessageMass();
-        $this->serverMessages .= $action->getMessageOne();
+        $this->serverMessages .= $action->getResponseMessage();
     }
 
     private function periodicManipulation(){

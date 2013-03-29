@@ -285,7 +285,8 @@ for (var i=0 ; i < abs.states.length ; i++) {
 this.event.addState(abs.states[i]);
 }
 }
-this.event.setTypeMove("real");
+//XXX: перевод в пиксели хотьбы при бое (хз зачем)
+//this.event.setTypeMove("real");
 }
 },
 

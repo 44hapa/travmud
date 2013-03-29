@@ -20,9 +20,24 @@ class Response{
     public $mobMessage = null;
 
     public $config;
+    private $subscribers;
 
-    public function __construct(){
+    /**
+     *
+     * @param TravmadUser | array  $subscribers
+     */
+    public function __construct($subscribers){
+        $this->subscribers = is_object($subscribers) ? array($subscribers) : $subscribers;
         $this->config = Config::getConfig();
+    }
+
+
+    private function getSubscribersWsIds(){
+        $usersWsIds = array();
+        foreach ($this->subscribers as $user) {
+            $usersWsIds[] = $user->wsId;
+        }
+        return implode($this->config['userDelimiter'], $usersWsIds);
     }
 
     private function getTemplate(){
@@ -49,6 +64,10 @@ class Response{
     }
 
     public function toString(){
+        if (empty($this->subscribers)) {
+            return null;
+        }
+
         $templateUserResponse = $this->getTemplate();
         $templateUserResponse['request'] = $this->request;
         $templateUserResponse['actionType'] = $this->actionType;
@@ -66,7 +85,7 @@ class Response{
         $templateUserResponse['mob']['actionValue'] = $this->mobActionValue;
         $templateUserResponse['mob']['message'] = $this->mobMessage;
 
-        return json_encode($templateUserResponse) . $this->config['endBuferDelimiter'];
+        return $this->getSubscribersWsIds() . $this->config['startBuferDelimiter'] . json_encode($templateUserResponse) . $this->config['endBuferDelimiter'];
     }
 
 }
