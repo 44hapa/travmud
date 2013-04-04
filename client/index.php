@@ -142,7 +142,8 @@ $config = Config::getConfig();
                         if (msgObj.actionType == 'setPosition'){
                             // Создадим себя в нужных координатах
                             var myPosition = msgObj.actionValue.myPosition;
-                            rpg.player.bitmap.visible = true;
+                            // Сделаем себя видимым
+                            rpg.player.visible(true);
                             rpg.player.setPosition(myPosition.positionX,myPosition.positionY);
                             rpg.setCamera(myPosition.positionX, myPosition.positionY);
 
@@ -168,13 +169,23 @@ $config = Config::getConfig();
                         if (msgObj.actionType == 'gotStrikeSword'){
                             var charObj = rpg.getEventByName(msgObj.user.name);
                             charObj.action('attack_ennemy');
+                            // Если удар достиг цели
+                            if (msgObj.actionValue > 0) {
+                                // Мигаем
+                                rpg.player.blink(15, 1);
+                                // Отрисовываем уменьшение хелсов (думаем, что у нас их 200px)
+                                var damagePx = 200 * msgObj.actionValue / 100;
+                                $('#hp').animate({'width': ($('#hp').width() - damagePx) + 'px'});
+                            }
                         }
 
                         // Мы умерли
                         if (msgObj.actionType == 'die'){
+                            // Отрисовываем хелсы к ноль
+                            $('#hp').animate({'width':  '0px'});
                             rpg.animations['Darkness 1'].setPosition(rpg.player.x, rpg.player.y);
                             rpg.animations['Darkness 1'].play();
-                            rpg.player.bitmap.visible = false;
+                            rpg.player.visible(false);
                         }
 
                         // Мы убили
@@ -348,6 +359,7 @@ $config = Config::getConfig();
                 function init() {
                     // Сделаем себя невидимыми
 //                    rpg.player.bitmap.visible = false;
+                    rpg.player.visible(false);
 
                     //Дадим мечик (он забинден на букву "а")
                     rpg.setSwitches(2, true);
@@ -367,6 +379,15 @@ $config = Config::getConfig();
 //                    rpg.player.setStopDirection('up') -- изменение направления персонажа
 //                    rpg.player.action('myattack') -- махать мечем
 
+                    // Отображаем хелсы МОБОВ
+//                    var qwe = new Arpg;
+//                    qwe.displayBar(rpg.player, 10, 100, 70, 5);
+//                    console.log(qwe)
+
+                        // Хелсы юзера
+//                      $('#hp').animate({'width': ($('#hp').width() - 5) + 'px'});
+//                      // Мигание юзера
+//                      rpg.player.blink(300, 1);
                 }
 
                 function createMonster(name, x, y) {

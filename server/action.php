@@ -202,16 +202,15 @@ class Action{
         $this->userAuthor->positionX = 4;
         $this->userAuthor->positionY = 4;
         $this->userAuthor->zone = 'example';
+        // Поместим чара в зону example
+        $this->map->getZone($this->userAuthor->zone)->putChar($this->userAuthor, $this->userAuthor->positionX, $this->userAuthor->positionY);
+
+        // Зададим нашу позицию и позицию остальных чаров.
         $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
         $response->message = "Теперь ваше имя {$this->requestWsMessage}";
-
-        // Зададим нашу позицию и позицию остальных чаров.
         $response->actionType = 'setPosition';
         $response->actionValue = $this->getAllPosition($this->userAuthor);
-
-        // Поместим чара в зону example
-        $this->map->getZone($this->userAuthor->zone)->putChar($this->userAuthor, $this->userAuthor->positionX, $this->userAuthor->positionY);
 
         $this->addResponseMessage($response->toString());
 
@@ -226,33 +225,10 @@ class Action{
         $this->addResponseMessage($responseAll->toString());
     }
 
-    private function getAllPosition($user){
-        $canvasPositionX = $user->positionX * $this->config['stepSize'];
-        $canvasPositionY = $user->positionY * $this->config['stepSize'];
-
-        $positions['myPosition'] = array('positionX' => $canvasPositionX, 'positionY' => $canvasPositionY);
-        $positions['charsPosition'] = $this->getAllCharsPositionExcludeAuthor($user);
+    private function getAllPosition(TravmadUser $user){
+        $positions['myPosition'] = $user->toStringAsPlayer();
+        $positions['charsPosition'] = $this->usersList->toStringAsMobExclude($user->wsId);
         return $positions;
-    }
-
-    /**
-     *
-     * @param TravmadUser $userAuthor
-     * @return array
-     */
-    private function getAllCharsPositionExcludeAuthor($userAuthor){
-        if (count($this->usersList->getUsersList()) < 2) {
-            return null;
-        }
-
-        $userListAsName = $this->usersList->getUsersAsName();
-        unset($userListAsName[$userAuthor->name]);
-
-        foreach ($userListAsName as $user) {
-            $chars[$user->name] = $user->toStringAsMob();
-        }
-
-        return $chars;
     }
 
     private function getMap(){

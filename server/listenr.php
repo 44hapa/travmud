@@ -77,8 +77,7 @@ class Listener {
     private function periodicManipulation(){
         $battle = Battle::getInstance();
         $battle->execute();
-        $this->serverMessages .= $battle->getMessagesOne();
-        $this->serverMessages .= $battle->getMessagesMass();
+        $this->serverMessages .= $battle->getResponseMessage();
     }
 
 }

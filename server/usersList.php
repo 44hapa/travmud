@@ -80,4 +80,23 @@ class UsersList{
         return $usersExclude;
     }
 
+
+    public function toStringAsMob(){
+        foreach ($this->usersList as $user) {
+            $chars[$user->name] = $user->toStringAsMob();
+        }
+        return $chars;
+    }
+
+    public function toStringAsMobExclude($excludeWsIds){
+        if (!$subscribers = $this->getUsersExludeAsWsId($excludeWsIds)) {
+            return null;
+        }
+
+        foreach ($subscribers as $user) {
+            $chars[$user->name] = $user->toStringAsMob();
+        }
+        return $chars;
+    }
+
 }

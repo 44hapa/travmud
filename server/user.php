@@ -20,13 +20,33 @@ class TravmadUser {
     public $enemyType;
     public $enemyIdent;
 
-    public $health = 200;
+    public $curentHealth = 200;
+    public $maxHealth = 200;
+
+    // Место реморта
+    public $bornPositionX;
+    public $bornPositionY;
+    public $bornZone;
 
     public function __construct($wsId){
         $this->wsId = $wsId;
         $this->config = Config::getConfig();
     }
 
+    public function rip(){
+        $this->enemyType = null;
+        $this->enemyIdent = null;
+
+        $this->positionX = $this->bornPositionX;
+        $this->positionY = $this->bornPositionY;
+        $this->zone = $this->bornZone;
+    }
+
+
+    public function win(){
+        $this->enemyType = null;
+        $this->enemyIdent = null;
+    }
 
     public function toStringAsMob(){
         $canvasPositionX = $this->positionX * $this->config['stepSize'];
@@ -55,4 +75,10 @@ class TravmadUser {
         return json_encode($data);
     }
 
+    public function toStringAsPlayer(){
+        $player['positionX'] = $this->positionX;
+        $player['positionY'] = $this->positionY;
+
+        return $player;
+    }
 }

@@ -19,14 +19,22 @@ class Battle{
 
     private $config;
 
-    private $messageOne;
-    private $messageMass;
+    private $responseMessage;
 
     private function __construct() {
         $this->config = Config::getConfig();
         $this->usersList = UsersList::getInstance();
     }
 
+    public function getResponseMessage(){
+        $responseMessage = $this->responseMessage;
+        $this->responseMessage = null;
+        return $responseMessage;
+    }
+
+    private function addResponseMessage($responseMessage){
+        $this->responseMessage .= $responseMessage;
+    }
 
     public function execute(){
         if (empty($this->queue) || (0 != Listener::$mainCounter % $this->delay)) {
@@ -39,73 +47,85 @@ class Battle{
                 $victim = $this->usersList->getUserByWsId($user->enemyIdent);
 
                 $damage = rand(0, 50);
-                $victim->health -= $damage;
+                $damagePecent = $damage * 100 / $victim->maxHealth;
+                $victim->curentHealth -= $damage;
 
-                if ($victim->health <= 0) {
-                    $response = new Response();
-                    $response->request = 'БОЙ!!!';
-                    $response->actionType = 'killed';
-                    $response->actionValue = $victim->name;
-                    $response->userName = $victim->name;
-                    $response->userActionType = 'die';
-                    $response->userActionValue = 'die';
-                    $response->message =  "Ты УБИЛ {$victim->name}!!!";
-                    $this->messageOne .= $user->wsId . $this->config['startBuferDelimiter'] . $response->toString();
-
-                    $responseVictim = new Response();
-                    $responseVictim->actionType = 'die';
-                    $responseVictim->actionValue = $user->name;
-                    $responseVictim->userName = $user->name;
-                    $responseVictim->message = 'Пользователь ' . $user->name .' охреначил тебя ДОСМЕРТИ!!!';
-                    $this->messageOne .= $victim->wsId . $this->config['startBuferDelimiter'] . $responseVictim->toString();
-
-                    $user->enemyType = null;
-                    $user->enemyIdent = null;
-
-                    $victim->enemyType = null;
-                    $victim->enemyIdent = null;
-
-                    $this->removeFighter(Interaction::CHAR, $user->wsId);
-                    $this->removeFighter(Interaction::CHAR, $victim->wsId);
+                if ($victim->curentHealth <= 0) {
+                    $this->killed($user, $victim);
                     return;
                 }
 
-                $response = new Response();
+                $response = new Response($user);
                 $response->request = 'БОЙ!!!';
                 $response->actionType = Interaction::STRIKE_SWORD;
                 $response->actionValue = $victim->name;
                 $response->userName = $victim->name;
                 $response->userActionType = Interaction::GOT_DAMAGE_STRIKE_SWORD;
                 $response->userActionValue = $user->name;
-                $response->userMessage = "У {$victim->name} осталось {$victim->health} жизней.";
-                $response->message =  "Ты отоварил {$victim->name} и снес ему $damage жизней.";
-                $this->messageOne .= $user->wsId . $this->config['startBuferDelimiter'] . $response->toString();
+                $response->userMessage = "Ты снес противнику $damagePecent% жизней";
+                $response->message =  "Ты отоварил {$victim->name} и снес ему $damagePecent% жизней.";
+                $this->addResponseMessage($response->toString());
 
-                $responseVictim = new Response();
+                $responseVictim = new Response($victim);
                 $responseVictim->request = 'БОЙ!!!';
                 $responseVictim->actionType = Interaction::GOT_DAMAGE_STRIKE_SWORD;
-                $responseVictim->actionValue = $user->name;
+                $responseVictim->actionValue = $damagePecent;
                 $responseVictim->userName = $user->name;
                 $responseVictim->userActionType = Interaction::STRIKE_SWORD;
                 $responseVictim->userActionValue = $victim->name;
-                $responseVictim->message = 'Пользователь ' . $user->name .' охреначил тебя, на '.$damage.' жизней!';
-                $this->messageOne .= $victim->wsId . $this->config['startBuferDelimiter'] . $responseVictim->toString();
+                $responseVictim->message = "Пользователь {$user->name} охреначил тебя, на $damagePecent% жизней!";
+                $this->addResponseMessage($responseVictim->toString());
 
                 // TODO: добавить сообщение для всех, исключая уже оповещенных.
             }
         }
     }
 
-    public function getMessagesOne(){
-        $messageOne = $this->messageOne;
-        $this->messageOne = null;
-        return $messageOne;
-    }
-    
-    public function getMessagesMass(){
-        $messageMass = $this->messageMass;
-        $this->messageMass = null;
-        return $messageMass;
+
+    private function killed(TravmadUser $user, TravmadUser $victim){
+        $response = new Response($user);
+        $response->request = 'БОЙ!!!';
+        $response->actionType = 'killed';
+        $response->actionValue = $victim->name;
+        $response->userName = $victim->name;
+        $response->userActionType = 'die';
+        $response->userActionValue = 'die';
+        $response->message =  "Ты УБИЛ {$victim->name}!!!";
+        $this->addResponseMessage($response->toString());
+
+        $responseVictim = new Response($victim);
+        $responseVictim->actionType = 'die';
+        $responseVictim->actionValue = $user->name;
+        $responseVictim->userName = $user->name;
+        $responseVictim->message = 'Пользователь ' . $user->name .' охреначил тебя ДОСМЕРТИ!!!';
+        $this->addResponseMessage($responseVictim->toString());
+
+        $this->removeFighter(Interaction::CHAR, $user->wsId);
+        $this->removeFighter(Interaction::CHAR, $victim->wsId);
+
+        // Вычеркнем противника
+        $user->win();
+        // Переместимся в точку возрождения и вычеркнем противника
+        $victim->rip();
+
+        // Зададим нашу позицию и позицию остальных чаров.
+        $responsePosition = new Response($victim);
+        $responsePosition->request = $this->requestWsMessage;
+        $responsePosition->message = "Ты возродился";
+        $responsePosition->actionType = 'setPosition';
+        $responsePosition->actionValue = array('myPosition' => $victim->toStringAsPlayer(), 'charsPosition' => $this->usersList->toStringAsMobExclude($victim->wsId));
+
+        $this->addResponseMessage($responsePosition->toString());
+
+        // Оповестим всех, возродился умерший.
+        $subscribers = $this->usersList->getUsersExludeAsWsId($victim->wsId);
+        $responseAll = new Response($subscribers);
+        $responseAll->userName = $victim->name;
+        $responseAll->userActionType = 'connectChar';
+        $responseAll->userActionValue = array($victim->name => $victim->toStringAsMob());
+        $responseAll->message = 'Возродился пользователь ' . $victim->name;
+
+        $this->addResponseMessage($responseAll->toString());
     }
 
     public function getQueue(){
