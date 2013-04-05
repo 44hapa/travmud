@@ -64,12 +64,8 @@ $config = Config::getConfig();
                             восток : 6
                         }
 
-                        log("Received: "+msgObj.message);
-
-                        if (msgObj.actionType == 'move') {
-                            var responseDirection = msgObj.actionValue;
-                            rpg.player.moreMove(comparingDirection[responseDirection],1);
-//                            rpg.player.move(comparingDirection[responseDirection]);
+                        if (null != msgObj.message) {
+                            log("Received: "+msgObj.message);
                         }
 
                         if (msgObj.partMap){
@@ -135,11 +131,24 @@ $config = Config::getConfig();
                                 charObj.moreMove(comparingDirection[dataFromSocket],1);
 //                                charObj.move(comparingDirection[dataFromSocket]);
                             }
+                            // Смерть чара
+                            if (msgObj.user.actionType == 'die'){
+                                var charObj = rpg.getEventByName(msgObj.user.name);
+                                dataFromSocket = msgObj.user.actionValue;
+                                rpg.animations['Darkness 1'].setPosition(charObj.x, charObj.y);
+                                rpg.animations['Darkness 1'].play();
+
+                                rpg.removeEvent(charObj.id)
+//                                charObj.bitmap.visible = false;
+                            }
                         }
 
 
                         // Это когда мы приконнектились и получили имя
                         if (msgObj.actionType == 'setPosition'){
+
+                            // TODO: Нужно затереть карту, и загрузить ее заново!!!
+
                             // Создадим себя в нужных координатах
                             var myPosition = msgObj.actionValue.myPosition;
                             // Сделаем себя видимым
@@ -160,8 +169,35 @@ $config = Config::getConfig();
                         }
 
 
+                        // Получение текущего состояния
+                        if (msgObj.actionType == 'prompt'){
+                                var prompt = msgObj.actionValue;
+                                viewHp = prompt.curentHealth * 200 / prompt.maxHealth;
+                                $('#hp').animate({'width': viewHp + 'px'});
+//                                console.log(msgObj.actionValue);
+                                //$('#hp').animate({'width': ($('#hp').width() + msgObj.actionValue) + 'px'});
+                        }
+
                         // Мы наносим удар
                         if (msgObj.actionType == 'strikeSword'){
+                            var charObj = rpg.getEventByName(msgObj.actionValue);
+                            // Повернемся лицом к противнику.
+                            var xDir = rpg.player.x - charObj.x;
+                            var yDir = rpg.player.y - charObj.y;
+
+                            if (yDir > 0) {
+                                rpg.player.setStopDirection("bottom");
+                            }
+                            if (yDir < 0) {
+                                rpg.player.setStopDirection("up");
+                            }
+                            if (xDir > 0) {
+                                rpg.player.setStopDirection("left");
+                            }
+                            if (xDir < 0) {
+                                rpg.player.setStopDirection("right");
+                            }
+
                             rpg.player.action('myattack');
                         }
 
@@ -188,12 +224,9 @@ $config = Config::getConfig();
                             rpg.player.visible(false);
                         }
 
-                        // Мы убили
-                        if (msgObj.actionType == 'killed'){
-                            var charObj = rpg.getEventByName(msgObj.user.name);
-                            rpg.animations['Darkness 1'].setPosition(charObj.x, charObj.y);
-                            rpg.animations['Darkness 1'].play();
-                            charObj.bitmap.visible = false;
+                        if (msgObj.actionType == 'move') {
+                            var responseDirection = msgObj.actionValue;
+                            rpg.player.moreMove(comparingDirection[responseDirection],1);
                         }
 
                     };

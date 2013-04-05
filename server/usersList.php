@@ -54,6 +54,11 @@ class UsersList{
         return $this->usersList;
     }
 
+
+    public function getCountUserList(){
+        return count($this->usersList);
+    }
+
     public function getUsersAsName(){
         return $this->getUsersAsField('name');
     }

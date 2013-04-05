@@ -52,6 +52,9 @@ class Interaction{
      * @return boolean
      */
     private function canStrike(TravmadUser $victim){
+        if (2 < abs($this->user->positionX - $victim->positionX) || 2 < abs($this->user->positionY - $victim->positionY)) {
+            return false;
+        }
         return true;
     }
 

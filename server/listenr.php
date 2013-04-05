@@ -8,6 +8,7 @@ require_once(BASE_PATH . '/server/response.php');
 require_once(BASE_PATH . '/server/action.php');
 require_once(BASE_PATH . '/server/interaction.php');
 require_once(BASE_PATH . '/server/battle.php');
+require_once(BASE_PATH . '/server/state.php');
 
 class Listener {
 
@@ -78,6 +79,10 @@ class Listener {
         $battle = Battle::getInstance();
         $battle->execute();
         $this->serverMessages .= $battle->getResponseMessage();
+
+        $state = State::getInstance();
+        $state->execute();
+        $this->serverMessages .= $state->getResponseMessage();
     }
 
 }

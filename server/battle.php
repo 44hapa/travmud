@@ -46,7 +46,7 @@ class Battle{
                 $user = $this->usersList->getUserByWsId($fighter[self::FIGHTER_IDENT]);
                 $victim = $this->usersList->getUserByWsId($user->enemyIdent);
 
-                $damage = rand(0, 50);
+                $damage = rand(0, 20);
                 $damagePecent = $damage * 100 / $victim->maxHealth;
                 $victim->curentHealth -= $damage;
 
@@ -84,9 +84,6 @@ class Battle{
 
     private function killed(TravmadUser $user, TravmadUser $victim){
         $response = new Response($user);
-        $response->request = 'БОЙ!!!';
-        $response->actionType = 'killed';
-        $response->actionValue = $victim->name;
         $response->userName = $victim->name;
         $response->userActionType = 'die';
         $response->userActionValue = 'die';
@@ -96,7 +93,6 @@ class Battle{
         $responseVictim = new Response($victim);
         $responseVictim->actionType = 'die';
         $responseVictim->actionValue = $user->name;
-        $responseVictim->userName = $user->name;
         $responseVictim->message = 'Пользователь ' . $user->name .' охреначил тебя ДОСМЕРТИ!!!';
         $this->addResponseMessage($responseVictim->toString());
 
@@ -110,10 +106,9 @@ class Battle{
 
         // Зададим нашу позицию и позицию остальных чаров.
         $responsePosition = new Response($victim);
-        $responsePosition->request = $this->requestWsMessage;
         $responsePosition->message = "Ты возродился";
         $responsePosition->actionType = 'setPosition';
-        $responsePosition->actionValue = array('myPosition' => $victim->toStringAsPlayer(), 'charsPosition' => $this->usersList->toStringAsMobExclude($victim->wsId));
+        $responsePosition->actionValue = array('myPosition' => $victim->getAsPlayer(), 'charsPosition' => $this->usersList->toStringAsMobExclude($victim->wsId));
 
         $this->addResponseMessage($responsePosition->toString());
 
@@ -144,6 +139,14 @@ class Battle{
         $queueId = array_search($fighter, $this->queue);
         if (false !== $queueId) {
             unset($this->queue[$queueId]);
+        }
+    }
+
+    public function stopFigting(array $users){
+        foreach ($users as $user) {
+            $user->enemyType = null;
+            $user->enemyIdent = null;
+            $this->removeFighter(Interaction::CHAR, $user->wsId);
         }
     }
 

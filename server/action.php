@@ -18,12 +18,17 @@ class Action{
      */
     private $userAuthor;
 
-
     /**
      *
      * @var Map
      */
     private $map;
+
+    /**
+     *
+     * @var Battle
+     */
+    private $battle;
 
     private $responseMessage;
 
@@ -38,6 +43,7 @@ class Action{
         $this->config = Config::getConfig();
         $this->usersList = UsersList::getInstance();
         $this->map = Map::getInstance();
+        $this->battle = Battle::getInstance();
         list($this->userAuthorWsId, $requestWsMessage) = explode($this->config['startBuferDelimiter'], $requestFromWebsocket);
         $this->requestWsMessage = trim($requestWsMessage);
         $this->userAuthor = $this->usersList->getUserByWsId($this->userAuthorWsId);
@@ -73,6 +79,10 @@ class Action{
             $this->kill($requestParam2);
             return;
         }
+        if ('бежать' == $requestParam1) {
+            $this->escape();
+            return;
+        }
 
         $this->moveUser();
         return;
@@ -84,6 +94,58 @@ class Action{
 
     private function addResponseMessage($responseMessage){
         $this->responseMessage .= $responseMessage;
+    }
+
+    private function escape(){
+        $response = new Response($this->userAuthor);
+        $response->request = $this->requestWsMessage;
+
+        // Шанс убежать
+        if (1 != rand(0, 1)) {
+            $response->actionType = null;
+            $response->actionValue = null;
+            $response->message = "У тебя не получается убежать из драки!!!";
+
+            $this->addResponseMessage($response->toString());
+            return;
+        }
+
+        $direction[0] = 'север';
+        $direction[1] = 'юг';
+        $direction[2] = 'запад';
+        $direction[3] = 'восток';
+
+        $randDirection = rand(0,3);
+
+        // Если не можем убежить в данном направлении.
+        if (!$this->map->tryMoveUser($direction[$randDirection], $this->userAuthor)){
+            $response->actionType = null;
+            $response->actionValue = null;
+            $response->message = "Ты не можешь убежать на {$direction[$randDirection]}!!!";
+
+            $this->addResponseMessage($response->toString());
+            return;
+        }
+        // Остановим драку.
+        $victim = $this->usersList->getUserByWsId($this->userAuthor->enemyIdent);
+        $this->battle->stopFigting(array($this->userAuthor, $victim));
+
+        // Переместим пользователя
+        $response->actionType = 'move';
+        $response->actionValue = $direction[$randDirection];
+        $response->message = "Ты убежал из драки.";
+
+        $this->addResponseMessage($response->toString());
+
+        // Оповестим всех, что мы двигаемся.
+        $subscribers = $this->usersList->getUsersExludeAsWsId($this->userAuthor->wsId);
+        $responseAll = new Response($subscribers);
+        $responseAll->userName = $this->userAuthor->name;
+        $responseAll->userActionType = 'move';
+        $responseAll->userActionValue = $direction[$randDirection];
+        $responseAll->message = 'Пользователь ' . $this->userAuthor->name . ' убежал на ' . $direction[$randDirection];
+
+        $this->addResponseMessage($responseAll->toString());
     }
 
     private function kill($victimName){
@@ -118,6 +180,9 @@ class Action{
             $this->addResponseMessage($responseVictim->toString());
             return;
         }
+
+        $response->message =  "Ты не можешь напасть на $victimName";
+        $this->addResponseMessage($response->toString());
 
         return;
     }
@@ -202,6 +267,7 @@ class Action{
         $this->userAuthor->positionX = 4;
         $this->userAuthor->positionY = 4;
         $this->userAuthor->zone = 'example';
+        $this->userAuthor->auth = true;
         // Поместим чара в зону example
         $this->map->getZone($this->userAuthor->zone)->putChar($this->userAuthor, $this->userAuthor->positionX, $this->userAuthor->positionY);
 
@@ -226,7 +292,7 @@ class Action{
     }
 
     private function getAllPosition(TravmadUser $user){
-        $positions['myPosition'] = $user->toStringAsPlayer();
+        $positions['myPosition'] = $user->getAsPlayer();
         $positions['charsPosition'] = $this->usersList->toStringAsMobExclude($user->wsId);
         return $positions;
     }
