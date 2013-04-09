@@ -24,9 +24,9 @@ class TravmadUser {
     public $maxHealth = 200;
 
     // Место реморта
-    public $bornPositionX;
-    public $bornPositionY;
-    public $bornZone;
+    public $bornPositionX = 1;
+    public $bornPositionY = 1;
+    public $bornZone = 'example';
 
     public $auth = false;
 

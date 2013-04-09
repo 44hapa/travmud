@@ -1258,7 +1258,7 @@ Rpg.prototype = {
         if (typeof filename != "string") {
             propreties.customPath = true;
             propreties.noCache = true;
-//            propreties.noCache = filename.noCache;
+            propreties.noCache = filename.noCache;
             filename = filename.path;
         }
                 
@@ -1999,7 +1999,18 @@ Rpg.prototype = {
 		
         return false;
     },
-	
+
+    removeAllEvents: function() {
+        if (this.events.length < 1) {
+            return true;
+        }
+        var i;
+        for (i=0; i < this.events.length ; i++) {
+            this.removeEvent(this.events[i].id);
+        }
+    },
+
+
     /**
      * Set the screen on an object (player, event, mouse ...)
 	 * @method setScreenIn

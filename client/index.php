@@ -44,7 +44,59 @@ $config = Config::getConfig();
 
         <script type="text/javascript">
             var socket;
-            var mapFromSocket;
+
+            /**
+             * Загрузка карты, мобов и чаров
+             */
+            function loadMap(msgObj) {
+                // Затираем мобов/чаров
+                rpg.removeAllEvents();
+                // Загружаем карту.
+                var mapFromSocket = msgObj.partMap;
+                rpg.loadMap('XpeH', {
+                    tileset: 'village.png',
+                    autotiles: ['sol11.png'],
+                    bgm:  {mp3: 'Town', ogg: 'Town'},
+                    player:  {
+                        x: 10,
+                        y: 10,
+                        direction: 'up',
+                        filename: 'Hero.png',
+                        regX: 30,
+                        regY: 55,
+                        actionBattle: {
+                            hp_max: 200,
+                            actions: ['myattack']
+                        },
+                        actions: ['myattack']
+                    }
+
+                }, false, false, mapFromSocket);
+
+                // Создадим себя в нужных координатах
+                var myPosition = msgObj.actionValue.myPosition;
+                // Сделаем себя видимым
+                rpg.player.visible(true);
+                rpg.player.setPosition(myPosition.positionX,myPosition.positionY);
+                rpg.setCamera(myPosition.positionX, myPosition.positionY);
+
+                // Если уже кто-то приконнектился до нас (мы не первые) - отрисуем и их
+                if (msgObj.actionValue.charsPosition) {
+                    for (var charName in msgObj.actionValue.charsPosition) {
+                        var connectChar = msgObj.actionValue.charsPosition[charName];
+                        if (!Cache.propretiesEvent[charName]) {
+                            rpg.prepareEventAjax(charName, false, connectChar);
+                        }
+
+                        var charProperty = JSON.parse(connectChar);
+                        console.log(charProperty[0].x);
+                        // Задаем координаты объекта, который уже в кеше.
+                        // create char
+                        rpg.setEventPrepared(charName, {x: charProperty[0].x, y: charProperty[0].y});
+                        rpg.addEventPrepared(charName);
+                    }
+                }
+            }
 
             function initWbsocket() {
                 var host = "ws://<?php echo ($config['websocket']['addr'].':'.$config['websocket']['port']) ?>"; // SET THIS TO YOUR SERVER
@@ -66,31 +118,6 @@ $config = Config::getConfig();
 
                         if (null != msgObj.message) {
                             log("Received: "+msgObj.message);
-                        }
-
-                        if (msgObj.partMap){
-                            mapFromSocket = msgObj.partMap;
-//=========================================== NEED REMAKE ===========================================
-                            rpg.loadMap('XpeH', {
-                                tileset: 'village.png',
-                                autotiles: ['sol11.png'],
-                                bgm:  {mp3: 'Town', ogg: 'Town'},
-                                player:  {
-                                    x: 10,
-                                    y: 10,
-                                    direction: 'up',
-                                    filename: 'Hero.png',
-                                    regX: 30,
-                                    regY: 55,
-                                    actionBattle: {
-                                        hp_max: 200,
-                                        actions: ['myattack']
-                                    },
-                                    actions: ['myattack']
-                                }
-
-                            }, false, false, mapFromSocket);
-//=========================================== NEED REMAKE ===========================================
                         }
 
                         // Что прислал моб
@@ -115,10 +142,16 @@ $config = Config::getConfig();
 
                             // Коннект нового чара
                             if (msgObj.user.actionType == 'connectChar'){
-                                dataFromSocket = msgObj.user.actionValue[userName];
-                                rpg.prepareEventAjax(userName, false, dataFromSocket);
+                                var connectChar = msgObj.user.actionValue[userName];
+                                if (!Cache.propretiesEvent[userName]) {
+                                    rpg.prepareEventAjax(userName, false, connectChar);
+                                }
+
+                                var charProperty = JSON.parse(connectChar);
+                                console.log(charProperty[0].x);
+                                // Задаем координаты объекта, который уже в кеше.
                                 // create char
-                                rpg.setEventPrepared(userName);
+                                rpg.setEventPrepared(userName, {x: charProperty[0].x, y: charProperty[0].y});
                                 rpg.addEventPrepared(userName);
                             }
 
@@ -134,40 +167,18 @@ $config = Config::getConfig();
                             // Смерть чара
                             if (msgObj.user.actionType == 'die'){
                                 var charObj = rpg.getEventByName(msgObj.user.name);
-                                dataFromSocket = msgObj.user.actionValue;
                                 rpg.animations['Darkness 1'].setPosition(charObj.x, charObj.y);
                                 rpg.animations['Darkness 1'].play();
 
                                 rpg.removeEvent(charObj.id)
-//                                charObj.bitmap.visible = false;
                             }
                         }
 
 
                         // Это когда мы приконнектились и получили имя
                         if (msgObj.actionType == 'setPosition'){
-
-                            // TODO: Нужно затереть карту, и загрузить ее заново!!!
-
-                            // Создадим себя в нужных координатах
-                            var myPosition = msgObj.actionValue.myPosition;
-                            // Сделаем себя видимым
-                            rpg.player.visible(true);
-                            rpg.player.setPosition(myPosition.positionX,myPosition.positionY);
-                            rpg.setCamera(myPosition.positionX, myPosition.positionY);
-
-                            // Если уже кто-то приконнектился до нас (мы не первые) - отрисуем и их
-                            if (msgObj.actionValue.charsPosition) {
-                                for (var charName in msgObj.actionValue.charsPosition) {
-                                    dataFromSocket = msgObj.actionValue.charsPosition[charName];
-                                    rpg.prepareEventAjax(charName, false, dataFromSocket);
-                                    // create char
-                                    rpg.setEventPrepared(charName);
-                                    rpg.addEventPrepared(charName);
-                                }
-                            }
+                            loadMap(msgObj);
                         }
-
 
                         // Получение текущего состояния
                         if (msgObj.actionType == 'prompt'){

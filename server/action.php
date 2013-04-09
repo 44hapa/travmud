@@ -277,6 +277,7 @@ class Action{
         $response->message = "Теперь ваше имя {$this->requestWsMessage}";
         $response->actionType = 'setPosition';
         $response->actionValue = $this->getAllPosition($this->userAuthor);
+        $response->partMap = $this->getMap();
 
         $this->addResponseMessage($response->toString());
 

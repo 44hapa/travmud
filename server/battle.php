@@ -83,6 +83,7 @@ class Battle{
 
 
     private function killed(TravmadUser $user, TravmadUser $victim){
+        // Убийца получает сообщение о том, какой чар умер.
         $response = new Response($user);
         $response->userName = $victim->name;
         $response->userActionType = 'die';
@@ -90,6 +91,8 @@ class Battle{
         $response->message =  "Ты УБИЛ {$victim->name}!!!";
         $this->addResponseMessage($response->toString());
 
+
+        // Жертва получает сообщение, что умерла.
         $responseVictim = new Response($victim);
         $responseVictim->actionType = 'die';
         $responseVictim->actionValue = $user->name;
