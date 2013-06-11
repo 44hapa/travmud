@@ -323,6 +323,9 @@ $config = Config::getConfig();
                         wait_finish: 1
                 });
 
+                // Передаем соединение в основной модуль JS
+                rpg.setWebsocket(socket);
+
                 rpg.addAction('myattack', {
                     action: 'attack', // for Action Battle System
                     suffix_motion: ['_SWD_1'], // suffix of the filename

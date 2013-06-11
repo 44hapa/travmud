@@ -29,6 +29,9 @@ THE SOFTWARE.
  */
  
 function Rpg(canvas_tag) {
+
+    this.websocket;
+
     // -- Canvas
     /**
      * The canvas 2D
@@ -2917,6 +2920,12 @@ Rpg.prototype = {
 		</pre>
     */
     bindMouseEvent: function(mouse_event, callback, event) {
+//        console.debug(callback);
+
+// TODO: передача сокета прошла успешно
+//    console.log(this.websocket);
+
+        
         var self = this, div, element, ev;
         div = document.getElementById(this.canvas.id + '-dom');
         if (event) {
@@ -2941,7 +2950,10 @@ Rpg.prototype = {
 		
         this.onMouseEvent[mouse_event] = callback;
     },
-	
+
+
+// TODO: установка эвентов для действий мышки.
+
     // Private
     _setMouseEvent: function(div) {
         var self = this;
@@ -3597,5 +3609,10 @@ Rpg.prototype = {
     */
     plugin: function(name) {
         return this.plugins[name] ? this.plugins[name] : false;
+    },
+
+    setWebsocket: function(websocket) {
+        this.websocket = websocket;
     }
+
 }

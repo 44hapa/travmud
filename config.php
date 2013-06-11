@@ -8,6 +8,7 @@ class Config{
     'maxBufferSize' => 2048,
     'endBuferDelimiter' => "###",
     'startBuferDelimiter' => "__",
+    'multicommandDelimiter' => ";",
     'userDelimiter' => "_",
         'stepSize' => 1,
         'websocket' => array(

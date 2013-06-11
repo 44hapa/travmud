@@ -60,6 +60,15 @@ class Action{
             $this->authorizeUser();
             return;
         }
+        // Определяем, является ли запрос мультикоммандой
+        if ($pos = strpos($this->requestWsMessage, $this->config['multicommandDelimiter'])) {
+            // Все, что идет после первой команды - идет в стек мультикоманд
+            $requestForMulticommand = substr($this->requestWsMessage, $pos + 1);
+            $bufer = Multicommand::getInstance();
+            $bufer->setUserCommands($this->userAuthorWsId, $requestForMulticommand);
+            // Первая команда идет дальше на исполнение.
+            $this->requestWsMessage = substr($this->requestWsMessage, 0, $pos);
+        }
 
         list($requestParam1,$requestParam2) = array_pad(explode(" ", $this->requestWsMessage,2), 2, null);
 

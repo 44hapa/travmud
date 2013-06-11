@@ -9,6 +9,7 @@ require_once(BASE_PATH . '/server/action.php');
 require_once(BASE_PATH . '/server/interaction.php');
 require_once(BASE_PATH . '/server/battle.php');
 require_once(BASE_PATH . '/server/state.php');
+require_once(BASE_PATH . '/server/multicommand.php');
 
 class Listener {
 
@@ -83,6 +84,10 @@ class Listener {
         $state = State::getInstance();
         $state->execute();
         $this->serverMessages .= $state->getResponseMessage();
+
+        $multicommand = Multicommand::getInstance();
+        $multicommand->execute();
+        $this->serverMessages .= $multicommand->getResponseMessage();
     }
 
 }
