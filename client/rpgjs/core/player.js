@@ -296,7 +296,10 @@ p.moveMouseTo = function(tile_x, tile_y, eventIgnore, callback) {
 // TODO: движуха мышкой Далее необходимо отсюда передавать данные о перемещении на сервер.
 console.log(tile_x +'==' + tile_y);
 // Убеждается, что вебсокет передался успешно
-console.log(this.rpg.websocket);
+this.rpg.websocket.send('move:' + tile_x + ',' + tile_y);
+
+// Далее клиентская обработка уже не нужна. Все происходит на сервере.
+return;
 
 var self = this;
 if (typeof eventIgnore == "function") {

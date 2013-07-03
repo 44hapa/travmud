@@ -60,6 +60,11 @@ class Action{
             $this->authorizeUser();
             return;
         }
+        // Если передана координата перемещения (move:X,Y)
+        if (false !== strpos($this->requestWsMessage, 'move:')) {
+            $this->requestWsMessage = $this->parseMultiMove($this->requestWsMessage);
+        }
+
         // Определяем, является ли запрос мультикоммандой
         if ($pos = strpos($this->requestWsMessage, $this->config['multicommandDelimiter'])) {
             // Все, что идет после первой команды - идет в стек мультикоманд
@@ -309,6 +314,40 @@ class Action{
 
     private function getMap(){
         return $this->map->toString();
+    }
+
+
+    private function parseMultiMove($requestWsMessage){
+        $xMove = array();
+        $yMove = array();
+
+        list($newX, $newY) = explode(',' , str_replace('move:', '', $requestWsMessage));
+
+        $oldX = $this->userAuthor->positionX;
+        $oldY = $this->userAuthor->positionY;
+
+        while ($oldX < $newX) {
+            $xMove[] = 'восток';
+            ++$oldX;
+        }
+
+        while ($oldX > $newX) {
+            $xMove[] = 'запад';
+            --$oldX;
+        }
+
+        while ($oldY < $newY) {
+            $yMove[] = 'юг';
+            ++$oldY;
+        }
+
+        while ($oldY > $newY) {
+            $xMove[] =  'север';
+            --$oldY;
+        }
+
+        $resultMove = implode(';', array_merge($yMove, $xMove));
+        return $resultMove;
     }
 
     private function getMob($name){

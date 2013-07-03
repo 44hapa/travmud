@@ -9,7 +9,12 @@ class Multicommand{
     static private $instance;
 
 
-    private $stackCommands;
+    /**
+     * Ключи - wsId пользователя, значения - список команд пользователя
+     * в виде запроса от ws сервера ($requestWsMessage)
+     * @var array
+     */
+    private $stackCommands = array();
     private $config;
     private $responseMessage;
 
@@ -23,9 +28,11 @@ class Multicommand{
             return;
         }
 
-        $action = new Action($this->getNextStackCommand());
-        $action->execute();
-        $this->addResponseMessage($action->getResponseMessage());
+        foreach ($this->getNextStackCommand() as $command) {
+            $action = new Action($command);
+            $action->execute();
+            $this->addResponseMessage($action->getResponseMessage());
+        }
     }
 
     public function getResponseMessage(){
@@ -41,12 +48,19 @@ class Multicommand{
     public function setUserCommands($userAuthorWsId, $requestWsMessage){
         $requestArray = explode($this->config['multicommandDelimiter'], $requestWsMessage);
         foreach ($requestArray as $message) {
-            $this->stackCommands[] = $this->createRequestFromWebsocket($userAuthorWsId, $message);
+            $this->stackCommands[$userAuthorWsId][] = $this->createRequestFromWebsocket($userAuthorWsId, $message);
         }
     }
 
     private function getNextStackCommand(){
-        return array_shift($this->stackCommands);
+        $result = array();
+        foreach ($this->stackCommands as $userWsId => $requestWsMessage) {
+            $result[] = array_shift($this->stackCommands[$userWsId]);
+        }
+        if (empty($this->stackCommands[$userWsId])) {
+            unset($this->stackCommands[$userWsId]);
+        }
+        return $result;
     }
 
     public function getStackCommands(){
