@@ -412,6 +412,26 @@ $config = Config::getConfig();
                     rpg.setSwitches(2, true);
 
                     rpg.player.useMouse(true);
+
+//                    // Пример навешивания функций на мышку.
+//                    rpg.bindMouseEvent("dblclick", function(obj) {
+//                            console.log(obj); // Object above
+//                    });
+//
+//                    var event = rpg.getEventByName("qqq");
+//                    rpg.bindMouseEvent("over", function(obj) {
+//                            console.log(obj);
+//                    }, event);
+//
+//                    rpg.bindMouseEvent("over", function(obj) {
+//                            console.log(obj);
+//                    }, rpg.player);
+//
+//                    rpg.bindMouseEvent("click", function(obj) {
+//                            console.log(obj);
+//                    }, rpg.player);
+
+
 //                    rpg.player.setTypeMove("real");
                     // Изменим тип хотьбы
                     rpg.player.setTypeMove("tile");
