@@ -339,8 +339,9 @@ $config = Config::getConfig();
                     }
                 });
 
-                /**
-                                Map Town
+                /*
+                 * Загрузка карты, которая будет по умолчанию
+                 * TODO: лучше потом заменить заставкой
                  */
                 rpg.loadMap('Test', {
                     tileset: 'village.png',
@@ -487,7 +488,7 @@ $config = Config::getConfig();
         <div id="websocket-parent">
             <h3>WebSocket v2.00</h3>
             <div id="log"></div>
-            <input id="msg" type="textbox" onkeypress="onkey(event)"/>
+            <input id="msg" type="textbox" onkeypress="onkey(event)"  autocomplete="on" />
             <button onclick="send()">Send</button>
             <button onclick="quit()">Quit</button>
             <button onclick="reconnect()">Reconnect</button>

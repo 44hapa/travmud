@@ -1,8 +1,10 @@
 <?php
+
 require_once('./../config.php');
 require_once(BASE_PATH . '/server/map.php');
 
-class Action{
+class Action
+{
 
     private $config;
 
@@ -11,6 +13,12 @@ class Action{
      * @var UsersList
      */
     private $usersList;
+
+    /**
+     *
+     * @var MobList
+     */
+    private $mobList;
 
     /**
      *
@@ -29,9 +37,7 @@ class Action{
      * @var Battle
      */
     private $battle;
-
     private $responseMessage;
-
     private $userAuthorWsId;
     private $requestWsMessage;
 
@@ -39,17 +45,20 @@ class Action{
      *
      * @param string $requestFromWebsocket
      */
-    public function __construct($requestFromWebsocket){
+    public function __construct($requestFromWebsocket)
+    {
         $this->config = Config::getConfig();
         $this->usersList = UsersList::getInstance();
+        $this->mobList = MobList::getInstance();
         $this->map = Map::getInstance();
         $this->battle = Battle::getInstance();
         list($this->userAuthorWsId, $requestWsMessage) = explode($this->config['startBuferDelimiter'], $requestFromWebsocket);
         $this->requestWsMessage = trim($requestWsMessage);
-        $this->userAuthor = $this->usersList->getUserByWsId($this->userAuthorWsId);
+        $this->userAuthor = $this->usersList->getByWsId($this->userAuthorWsId);
     }
 
-    public function execute(){
+    public function execute()
+    {
         // Если пользователь только приконнектился
         if (!$this->userAuthor) {
             $this->connectNewUser();
@@ -75,7 +84,7 @@ class Action{
             $this->requestWsMessage = substr($this->requestWsMessage, 0, $pos);
         }
 
-        list($requestParam1,$requestParam2) = array_pad(explode(" ", $this->requestWsMessage,2), 2, null);
+        list($requestParam1, $requestParam2) = array_pad(explode(" ", $this->requestWsMessage, 2), 2, null);
 
         if ('кто' == $requestParam1) {
             $this->showUsers();
@@ -86,7 +95,8 @@ class Action{
             return;
         }
         if ('mob' == $requestParam1) {
-            $this->showMob();
+//            $this->showMob();
+            $this->createMob($requestParam2);
             return;
         }
         if ('убить' == $requestParam1) {
@@ -102,15 +112,18 @@ class Action{
         return;
     }
 
-    public function getResponseMessage(){
+    public function getResponseMessage()
+    {
         return $this->responseMessage;
     }
 
-    private function addResponseMessage($responseMessage){
+    private function addResponseMessage($responseMessage)
+    {
         $this->responseMessage .= $responseMessage;
     }
 
-    private function escape(){
+    private function escape()
+    {
         $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
 
@@ -129,10 +142,10 @@ class Action{
         $direction[2] = 'запад';
         $direction[3] = 'восток';
 
-        $randDirection = rand(0,3);
+        $randDirection = rand(0, 3);
 
         // Если не можем убежить в данном направлении.
-        if (!$this->map->tryMoveUser($direction[$randDirection], $this->userAuthor)){
+        if (!$this->map->tryMoveUser($direction[$randDirection], $this->userAuthor)) {
             $response->actionType = null;
             $response->actionValue = null;
             $response->message = "Ты не можешь убежать на {$direction[$randDirection]}!!!";
@@ -141,7 +154,7 @@ class Action{
             return;
         }
         // Остановим драку.
-        $victim = $this->usersList->getUserByWsId($this->userAuthor->enemyIdent);
+        $victim = $this->usersList->getByWsId($this->userAuthor->enemyIdent);
         $this->battle->stopFigting(array($this->userAuthor, $victim));
 
         // Переместим пользователя
@@ -152,7 +165,7 @@ class Action{
         $this->addResponseMessage($response->toString());
 
         // Оповестим всех, что мы двигаемся.
-        $subscribers = $this->usersList->getUsersExludeAsWsId($this->userAuthor->wsId);
+        $subscribers = $this->usersList->getListExludeAsWsId($this->userAuthor->wsId);
         $responseAll = new Response($subscribers);
         $responseAll->userName = $this->userAuthor->name;
         $responseAll->userActionType = 'move';
@@ -162,18 +175,19 @@ class Action{
         $this->addResponseMessage($responseAll->toString());
     }
 
-    private function kill($victimName){
+    private function kill($victimName)
+    {
         $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
 
         if (empty($victimName)) {
-            $response->message =  "Убить кого?!";
+            $response->message = "Убить кого?!";
             $this->addResponseMessage($response->toString());
             return;
         }
 
-        if (!$victim = $this->usersList->getUserByName($victimName)) {
-            $response->message =  "Нет такого чара";
+        if (!$victim = $this->usersList->getByName($victimName)) {
+            $response->message = "Нет такого чара";
             $this->addResponseMessage($response->toString());
             return;
         }
@@ -181,7 +195,7 @@ class Action{
         $interaction = new Interaction($this->userAuthor);
 
         if ($interaction->tryStryke($victim)) {
-            $response->message =  "Ты отоварил $victimName";
+            $response->message = "Ты отоварил $victimName";
             $response->actionType = "stryke";
             $response->actionValue = $victimName;
             $this->addResponseMessage($response->toString());
@@ -190,28 +204,44 @@ class Action{
             $responseVictim->userName = $this->userAuthor->name;
             $responseVictim->userActionType = 'kill';
             $responseVictim->userActionValue = 'strike';
-            $responseVictim->message = 'Пользователь ' . $this->userAuthor->name .' напал на тебя!';
+            $responseVictim->message = 'Пользователь ' . $this->userAuthor->name . ' напал на тебя!';
             $this->addResponseMessage($responseVictim->toString());
             return;
         }
 
-        $response->message =  "Ты не можешь напасть на $victimName";
+        $response->message = "Ты не можешь напасть на $victimName";
         $this->addResponseMessage($response->toString());
 
         return;
     }
 
-    private function showMob(){
+    /**
+     * @deprecated
+     */
+    private function showMob()
+    {
         $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
-        $response->message =  "Вот те монстер";
+        $response->message = "Вот те монстер";
         $response->mobName = 'mob1';
         $response->mobActionType = 'create';
         $response->mobActionValue = array('mob1' => $this->getMob('mob1'));
         $this->addResponseMessage($response->toString());
     }
 
-    private function showMap(){
+    private function createMob($name)
+    {
+        $response = new Response($this->userAuthor);
+        $response->request = $this->requestWsMessage;
+        $response->message = "Вот те монстер $name";
+        $response->mobName = $name;
+        $response->mobActionType = 'create';
+        $response->mobActionValue = array($name => $this->getMob($name));
+        $this->addResponseMessage($response->toString());
+    }
+
+    private function showMap()
+    {
         $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
         $response->message = "Вот те карта";
@@ -219,10 +249,11 @@ class Action{
         $this->addResponseMessage($response->toString());
     }
 
-    private function showUsers(){
+    private function showUsers()
+    {
         $request = '';
-        foreach ($this->usersList->getUsersList() as $user) {
-            $request .= "Пользователь ".$user->name . "[$user->wsId]<br>";
+        foreach ($this->usersList->getList() as $user) {
+            $request .= "Пользователь " . $user->name . "[$user->wsId]<br>";
         }
         $request .= "<br><hr>";
 
@@ -232,12 +263,13 @@ class Action{
         $this->addResponseMessage($response->toString());
     }
 
-    private function moveUser(){
+    private function moveUser()
+    {
         // Движение пользователя
         $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
 
-        if (!$this->map->tryMoveUser($this->requestWsMessage, $this->userAuthor)){
+        if (!$this->map->tryMoveUser($this->requestWsMessage, $this->userAuthor)) {
             $response->actionType = null;
             $response->actionValue = null;
             $response->message = "Вы не можете двигаться в этом направлении";
@@ -253,7 +285,7 @@ class Action{
         $this->addResponseMessage($response->toString());
 
         // Оповестим всех, что мы двигаемся.
-        $subscribers = $this->usersList->getUsersExludeAsWsId($this->userAuthor->wsId);
+        $subscribers = $this->usersList->getListExludeAsWsId($this->userAuthor->wsId);
         $responseAll = new Response($subscribers);
         $responseAll->userName = $this->userAuthor->name;
         $responseAll->userActionType = 'move';
@@ -263,9 +295,10 @@ class Action{
         $this->addResponseMessage($responseAll->toString());
     }
 
-    private function connectNewUser(){
+    private function connectNewUser()
+    {
         $this->userAuthor = new TravmadUser($this->userAuthorWsId);
-        $this->usersList->addUser($this->userAuthor);
+        $this->usersList->add($this->userAuthor);
 
         $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
@@ -274,8 +307,8 @@ class Action{
         $this->addResponseMessage($response->toString());
     }
 
-
-    private function authorizeUser(){
+    private function authorizeUser()
+    {
         // Присвоим имя новому пользователю
         $this->userAuthor->name = $this->requestWsMessage;
         $this->userAuthor->positionX = 4;
@@ -283,7 +316,7 @@ class Action{
         $this->userAuthor->zone = 'example';
         $this->userAuthor->auth = true;
         // Поместим чара в зону example
-        $this->map->getZone($this->userAuthor->zone)->putChar($this->userAuthor, $this->userAuthor->positionX, $this->userAuthor->positionY);
+        $this->map->getZone($this->userAuthor->zone)->putCreature($this->userAuthor, $this->userAuthor->positionX, $this->userAuthor->positionY);
 
         // Зададим нашу позицию и позицию остальных чаров.
         $response = new Response($this->userAuthor);
@@ -296,7 +329,7 @@ class Action{
         $this->addResponseMessage($response->toString());
 
         // Оповестим всех, что появился новый.
-        $subscribers = $this->usersList->getUsersExludeAsWsId($this->userAuthor->wsId);
+        $subscribers = $this->usersList->getListExludeAsWsId($this->userAuthor->wsId);
         $responseAll = new Response($subscribers);
         $responseAll->userName = $this->userAuthor->name;
         $responseAll->userActionType = 'connectChar';
@@ -306,22 +339,24 @@ class Action{
         $this->addResponseMessage($responseAll->toString());
     }
 
-    private function getAllPosition(TravmadUser $user){
+    private function getAllPosition(TravmadUser $user)
+    {
         $positions['myPosition'] = $user->getAsPlayer();
         $positions['charsPosition'] = $this->usersList->toStringAsMobExclude($user->wsId);
         return $positions;
     }
 
-    private function getMap(){
+    private function getMap()
+    {
         return $this->map->toString();
     }
 
-
-    private function parseMultiMove($requestWsMessage){
+    private function parseMultiMove($requestWsMessage)
+    {
         $xMove = array();
         $yMove = array();
 
-        list($newX, $newY) = explode(',' , str_replace('move:', '', $requestWsMessage));
+        list($newX, $newY) = explode(',', str_replace('move:', '', $requestWsMessage));
 
         $oldX = $this->userAuthor->positionX;
         $oldY = $this->userAuthor->positionY;
@@ -342,7 +377,7 @@ class Action{
         }
 
         while ($oldY > $newY) {
-            $xMove[] =  'север';
+            $xMove[] = 'север';
             --$oldY;
         }
 
@@ -350,80 +385,20 @@ class Action{
         return $resultMove;
     }
 
-    private function getMob($name){
-        $type1 = '067-Goblin01.png'; // бобрик
-        $type2 = '075-Devil01.png'; // бесенок
-        $type3 = '180-Switch03.png'; // дырка
-        $type4 = '151-Animal01.png'; // собака
-        $type5 = '175-Chest02.png'; // ящик
-        $data = '
-[
+    private function getMob($name)
     {
-        "name": "'.$name.'",
-        "x": 19,
-        "y": 21
-    },
-    [
-        {
+        $mob = new Mob();
+        // Присвоим имя новому пользователю
+        $mob->name = $name;
+        $mob->positionX = 2;
+        $mob->positionY = 4;
+        $mob->zone = 'example';
 
-            "character_hue": "'.$type1.'",
-            "direction": "bottom",
-            "type": "random",
-            "trigger": "event_touch",
-            "speed": 3,
-            "frequence": 0,
-            "action_battle": {
-                "area": 2,
-                "hp_max": 30,
-                "animation_death": "Darkness 1",
-                "actions": ["attack_ennemy"],
-                "ennemyDead": [{
-                        "name": "coin",
-                        "probability": 100,
-                        "call": "drop_coin"
-                    }],
-                "detection": "_default",
-                "nodetection": "_default",
-                "attack": "_default",
-                "affected": "_default",
-                "offensive": "_default",
-                "passive": "_default"
-            }
-        }
+        $this->mobList->add($mob);
+        // Поместим моба в зону example
+        $this->map->getZone($mob->zone)->putCreature($mob, $mob->positionX, $mob->positionY);
 
-    ]
-]
-
-';
-        $data = json_decode($data, true);
-        return json_encode($data);
-    }
-
-    private function getMob2(){
-        $data = '
-[
-    {
-        "name": "monster1",
-        "x": 19,
-        "y": 21
-    },
-    [
-        {
-
-            "character_hue": "067-Goblin01.png",
-            "direction": "bottom",
-            "type": "fixed",
-            "trigger": "event_touch",
-            "speed": 3,
-            "frequence": 0
-        }
-
-    ]
-]
-
-';
-        $data = json_decode($data, true);
-        return json_encode($data);
+        return $mob->toStringAsMob();
     }
 
 }

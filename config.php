@@ -12,7 +12,7 @@ class Config{
     'userDelimiter' => "_",
         'stepSize' => 1,
         'websocket' => array(
-            'addr' => '0.0.0.0',
+            'addr' => '0.0.0.0', // Слушаем вообще все ip
             'port' => '8000',
         ),
         'server' => array(

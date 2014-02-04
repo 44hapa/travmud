@@ -1,8 +1,12 @@
 <?php
 
 require_once('./../config.php');
+require_once(BASE_PATH . '/server/creatureAbstract.php');
+require_once(BASE_PATH . '/server/creatureListAbstract.php');
 require_once(BASE_PATH . '/server/user.php');
 require_once(BASE_PATH . '/server/usersList.php');
+require_once(BASE_PATH . '/server/mob.php');
+require_once(BASE_PATH . '/server/mobList.php');
 require_once(BASE_PATH . '/server/map.php');
 require_once(BASE_PATH . '/server/response.php');
 require_once(BASE_PATH . '/server/action.php');
@@ -11,7 +15,8 @@ require_once(BASE_PATH . '/server/battle.php');
 require_once(BASE_PATH . '/server/state.php');
 require_once(BASE_PATH . '/server/multicommand.php');
 
-class Listener {
+class Listener
+{
 
     protected $maxBufferSize;
     protected $master;
@@ -26,7 +31,8 @@ class Listener {
      */
     private $serverMessages;
 
-    public function __construct($addr, $port, $bufferLength = 2048) {
+    public function __construct($addr, $port, $bufferLength = 2048)
+    {
         UsersList::getInstance();
         Map::getInstance();
         Battle::getInstance();
@@ -39,13 +45,12 @@ class Listener {
 
 
         $read = array($this->master);
-        $write  = NULL;
+        $write = NULL;
         $except = NULL;
-        while(1) {
+        while (1) {
             self::$mainCounter++;
             @socket_select($read, $write, $except, 0, 1);
             $numBytes = @socket_recv($this->master, $buffer, 24000, MSG_DONTWAIT); // MSG_DONTWAIT - что бы не блокировал
-
             // Смотрим, есть ли сообщения для кого-нибудь в общем пуле.
             if ($this->serverMessages) {
                 echo "\nserverMessages>>>>>>>>>\n";
@@ -60,23 +65,23 @@ class Listener {
             if ($numBytes > 0) {
                 // Обработаем данные, которые пришли  в сокет websocketServer
                 $this->beginProcess(trim($buffer));
-            }
-            else{
+            } else {
                 usleep(250000);
             }
-}
+        }
 
         socket_close($this->master);
     }
 
-
-    private function beginProcess($requestFromWebsocket){
+    private function beginProcess($requestFromWebsocket)
+    {
         $action = new Action($requestFromWebsocket);
         $action->execute();
         $this->serverMessages .= $action->getResponseMessage();
     }
 
-    private function periodicManipulation(){
+    private function periodicManipulation()
+    {
         $battle = Battle::getInstance();
         $battle->execute();
         $this->serverMessages .= $battle->getResponseMessage();

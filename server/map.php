@@ -3,7 +3,8 @@
 require_once('./../config.php');
 require_once(BASE_PATH . '/server/zone.php');
 
-class Map {
+class Map
+{
 
     public $map = array();
 
@@ -13,20 +14,20 @@ class Map {
      */
     static private $instance;
 
-
-    private function __construct() {
+    private function __construct()
+    {
+        
     }
-
 
     /**
      *
      * @param string $zoneName
      * @return Zone
      */
-    public function getZone($zoneName){
+    public function getZone($zoneName)
+    {
         return $this->map[$zoneName];
     }
-
 
     /**
      *
@@ -34,8 +35,9 @@ class Map {
      * @param TravmadUser $user
      * @return boolean
      */
-    public function tryMoveUser($direction, TravmadUser $user){
-        /*@var Zone $zone*/
+    public function tryMoveUser($direction, TravmadUser $user)
+    {
+        /* @var Zone $zone */
         $zone = $this->map[$user->zone];
         switch ($direction) {
             case 'север':
@@ -58,7 +60,8 @@ class Map {
         return $result;
     }
 
-    private function catMove(Zone $zone, $newX, $newY){
+    private function catMove(Zone $zone, $newX, $newY)
+    {
         return $zone->canMove($newX, $newY);
     }
 
@@ -70,10 +73,11 @@ class Map {
      * @param int $newY
      * @return boolean
      */
-    private function moveUser(TravmadUser $user, Zone $zone, $newX, $newY){
-        if ($this->catMove($zone, $newX, $newY)){
-            $zone->pullChar($user, $user->positionX, $user->positionY);
-            $zone->putChar($user, $newX, $newY);
+    private function moveUser(TravmadUser $user, Zone $zone, $newX, $newY)
+    {
+        if ($this->catMove($zone, $newX, $newY)) {
+            $zone->pullCreature($user, $user->positionX, $user->positionY);
+            $zone->putCreature($user, $newX, $newY);
 
             $user->positionX = $newX;
             $user->positionY = $newY;
@@ -87,7 +91,8 @@ class Map {
      *
      * @return Map
      */
-    static public function getInstance(){
+    static public function getInstance()
+    {
         if (!empty(self::$instance)) {
             return self::$instance;
         }
@@ -98,12 +103,12 @@ class Map {
         return self::$instance;
     }
 
-
-    public function toString(){
+    public function toString()
+    {
         $map = array();
-        foreach ($this->map as $zoneName=>$zone){
-            foreach ($zone->zone as $x => $zoneXpropertys){
-                foreach ($zoneXpropertys as $y => $cellProperty){
+        foreach ($this->map as $zoneName => $zone) {
+            foreach ($zone->zone as $x => $zoneXpropertys) {
+                foreach ($zoneXpropertys as $y => $cellProperty) {
                     $map[$x][$y] = array(
                         0 => $cellProperty[Zone::CELL_COVER],
                         1 => null,
@@ -117,7 +122,7 @@ class Map {
             'map' => $map,
             'propreties' => array(
                 150 => array(0, 15),
-                1505 => array(0,0),
+                1505 => array(0, 0),
             )
         );
 

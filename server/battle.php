@@ -1,13 +1,12 @@
 <?php
 
-class Battle{
-
+class Battle
+{
 
     const FIGHTER_TYPE = 'fighterType';
     const FIGHTER_IDENT = 'fighterIdent';
 
     static private $instance;
-
     private $queue = array();
     private $delay = 4;
 
@@ -16,35 +15,37 @@ class Battle{
      * @var UsersList
      */
     private $usersList;
-
     private $config;
-
     private $responseMessage;
 
-    private function __construct() {
+    private function __construct()
+    {
         $this->config = Config::getConfig();
         $this->usersList = UsersList::getInstance();
     }
 
-    public function getResponseMessage(){
+    public function getResponseMessage()
+    {
         $responseMessage = $this->responseMessage;
         $this->responseMessage = null;
         return $responseMessage;
     }
 
-    private function addResponseMessage($responseMessage){
+    private function addResponseMessage($responseMessage)
+    {
         $this->responseMessage .= $responseMessage;
     }
 
-    public function execute(){
+    public function execute()
+    {
         if (empty($this->queue) || (0 != Listener::$mainCounter % $this->delay)) {
             return;
         }
 
         foreach ($this->queue as $fighter) {
             if (Interaction::CHAR == $fighter[self::FIGHTER_TYPE]) {
-                $user = $this->usersList->getUserByWsId($fighter[self::FIGHTER_IDENT]);
-                $victim = $this->usersList->getUserByWsId($user->enemyIdent);
+                $user = $this->usersList->getByWsId($fighter[self::FIGHTER_IDENT]);
+                $victim = $this->usersList->getByWsId($user->enemyIdent);
 
                 $damage = rand(0, 20);
                 $damagePecent = $damage * 100 / $victim->maxHealth;
@@ -63,7 +64,7 @@ class Battle{
                 $response->userActionType = Interaction::GOT_DAMAGE_STRIKE_SWORD;
                 $response->userActionValue = $user->name;
                 $response->userMessage = "Ты снес противнику $damagePecent% жизней";
-                $response->message =  "Ты отоварил {$victim->name} и снес ему $damagePecent% жизней.";
+                $response->message = "Ты отоварил {$victim->name} и снес ему $damagePecent% жизней.";
                 $this->addResponseMessage($response->toString());
 
                 $responseVictim = new Response($victim);
@@ -81,14 +82,14 @@ class Battle{
         }
     }
 
-
-    private function killed(TravmadUser $user, TravmadUser $victim){
+    private function killed(TravmadUser $user, TravmadUser $victim)
+    {
         // Убийца получает сообщение о том, какой чар умер.
         $response = new Response($user);
         $response->userName = $victim->name;
         $response->userActionType = 'die';
         $response->userActionValue = 'die';
-        $response->message =  "Ты УБИЛ {$victim->name}!!!";
+        $response->message = "Ты УБИЛ {$victim->name}!!!";
         $this->addResponseMessage($response->toString());
 
 
@@ -96,7 +97,7 @@ class Battle{
         $responseVictim = new Response($victim);
         $responseVictim->actionType = 'die';
         $responseVictim->actionValue = $user->name;
-        $responseVictim->message = 'Пользователь ' . $user->name .' охреначил тебя ДОСМЕРТИ!!!';
+        $responseVictim->message = 'Пользователь ' . $user->name . ' охреначил тебя ДОСМЕРТИ!!!';
         $this->addResponseMessage($responseVictim->toString());
 
         $this->removeFighter(Interaction::CHAR, $user->wsId);
@@ -116,7 +117,7 @@ class Battle{
         $this->addResponseMessage($responsePosition->toString());
 
         // Оповестим всех, возродился умерший.
-        $subscribers = $this->usersList->getUsersExludeAsWsId($victim->wsId);
+        $subscribers = $this->usersList->getListExludeAsWsId($victim->wsId);
         $responseAll = new Response($subscribers);
         $responseAll->userName = $victim->name;
         $responseAll->userActionType = 'connectChar';
@@ -126,26 +127,30 @@ class Battle{
         $this->addResponseMessage($responseAll->toString());
     }
 
-    public function getQueue(){
+    public function getQueue()
+    {
         return $this->queue;
     }
 
-    public function addFighter($fighterType, $fighterIdent){
-        $fighter = array(self::FIGHTER_TYPE=> $fighterType, self::FIGHTER_IDENT => $fighterIdent);
+    public function addFighter($fighterType, $fighterIdent)
+    {
+        $fighter = array(self::FIGHTER_TYPE => $fighterType, self::FIGHTER_IDENT => $fighterIdent);
         if (!in_array($fighter, $this->queue)) {
             array_push($this->queue, $fighter);
         }
     }
 
-    public function removeFighter($fighterType, $fighterIdent){
-        $fighter = array(self::FIGHTER_TYPE=> $fighterType, self::FIGHTER_IDENT => $fighterIdent);
+    public function removeFighter($fighterType, $fighterIdent)
+    {
+        $fighter = array(self::FIGHTER_TYPE => $fighterType, self::FIGHTER_IDENT => $fighterIdent);
         $queueId = array_search($fighter, $this->queue);
         if (false !== $queueId) {
             unset($this->queue[$queueId]);
         }
     }
 
-    public function stopFigting(array $users){
+    public function stopFigting(array $users)
+    {
         foreach ($users as $user) {
             $user->enemyType = null;
             $user->enemyIdent = null;
@@ -157,12 +162,13 @@ class Battle{
      *
      * @return Battle
      */
-    static public function getInstance(){
-        if (!empty(self::$instance)){
+    static public function getInstance()
+    {
+        if (!empty(self::$instance)) {
             return self::$instance;
         }
         self::$instance = new self();
         return self::$instance;
     }
-    
+
 }

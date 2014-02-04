@@ -282,7 +282,7 @@ abstract class WebSocketServer {
         return null;
     }
 
-    protected function getUserByName($userName) {
+    protected function getByName($userName) {
         foreach ($this->users as $user) {
             if ($user->name == $userName) {
                 return $user;

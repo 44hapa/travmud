@@ -1,39 +1,16 @@
 <?php
 
-class UsersList{
-
-
-    private $usersList = array();
-
-
-    static private $instance;
-
-
-
-    private function __construct() {
-    }
-
-
-    static public function getInstance(){
-        if (!empty(self::$instance)){
-            return self::$instance;
-        }
-        self::$instance = new self();
-        return self::$instance;
-    }
-
-
-    public function addUser(TravmadUser $user){
-        $this->usersList[] = $user;
-    }
+class UsersList extends CreatureListAbstract
+{
 
     /**
      *
      * @param type $wsId
      * @return TravmadUser | null
      */
-    public function getUserByWsId($wsId){
-        foreach ($this->usersList as $user) {
+    public function getByWsId($wsId)
+    {
+        foreach ($this->list as $user) {
             if ($wsId == $user->wsId) {
                 return $user;
             }
@@ -41,60 +18,32 @@ class UsersList{
         return null;
     }
 
-    public function getUserByName($name){
-        foreach ($this->usersList as $user) {
-            if ($name == $user->name) {
-                return $user;
-            }
-        }
-        return null;
+    public function getListAsWsId()
+    {
+        return $this->getListAsField('wsId');
     }
 
-    public function getUsersList(){
-        return $this->usersList;
-    }
-
-
-    public function getCountUserList(){
-        return count($this->usersList);
-    }
-
-    public function getUsersAsName(){
-        return $this->getUsersAsField('name');
-    }
-
-    public function getUsersAsWsId(){
-        return $this->getUsersAsField('wsId');
-    }
-
-    private function getUsersAsField($field){
-        $usersAsField = array();
-        foreach ($this->usersList as $user){
-            $usersAsField[$user->{$field}] = $user;
-        }
-        return $usersAsField;
-    }
-
-
-    public function getUsersExludeAsWsId($excludeWsIds){
-        $excludeWsIds = (array)$excludeWsIds;
-        $usersExclude = $this->getUsersAsWsId();
+    public function getListExludeAsWsId($excludeWsIds)
+    {
+        $excludeWsIds = (array) $excludeWsIds;
+        $usersExclude = $this->getListAsWsId();
         foreach ($excludeWsIds as $wsId) {
             unset($usersExclude[$wsId]);
         }
         return $usersExclude;
     }
 
-
-    public function toStringAsMob(){
-        foreach ($this->usersList as $user) {
+    public function toStringAsMob()
+    {
+        foreach ($this->list as $user) {
             $chars[$user->name] = $user->toStringAsMob();
         }
         return $chars;
     }
 
-    public function toStringAsMobExclude($excludeWsIds){
-        if (!$subscribers = $this->getUsersExludeAsWsId($excludeWsIds)) {
+    public function toStringAsMobExclude($excludeWsIds)
+    {
+        if (!$subscribers = $this->getListExludeAsWsId($excludeWsIds)) {
             return null;
         }
 

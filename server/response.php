@@ -1,24 +1,23 @@
 <?php
+
 require_once('./../config.php');
 
-class Response{
+class Response
+{
 
     public $request = null;
     public $actionType = null;
     public $actionValue = null;
     public $message = null;
     public $partMap = null;
-
     public $userName = null;
     public $userActionType = null;
     public $userActionValue = null;
     public $userMessage = null;
-
     public $mobName = null;
     public $mobActionType = null;
     public $mobActionValue = null;
     public $mobMessage = null;
-
     public $config;
     private $subscribers;
 
@@ -26,13 +25,14 @@ class Response{
      *
      * @param TravmadUser | array  $subscribers
      */
-    public function __construct($subscribers){
+    public function __construct($subscribers)
+    {
         $this->subscribers = is_object($subscribers) ? array($subscribers) : $subscribers;
         $this->config = Config::getConfig();
     }
 
-
-    private function getSubscribersWsIds(){
+    private function getSubscribersWsIds()
+    {
         $usersWsIds = array();
         foreach ($this->subscribers as $user) {
             $usersWsIds[] = $user->wsId;
@@ -40,7 +40,8 @@ class Response{
         return implode($this->config['userDelimiter'], $usersWsIds);
     }
 
-    private function getTemplate(){
+    private function getTemplate()
+    {
         $templateUserResponse = array(
             'request' => null,
             'actionType' => null,
@@ -63,7 +64,8 @@ class Response{
         return $templateUserResponse;
     }
 
-    public function toString(){
+    public function toString()
+    {
         if (empty($this->subscribers)) {
             return null;
         }
