@@ -16,6 +16,12 @@ abstract class CreatureAbstract
     public $bornPositionX = 1;
     public $bornPositionY = 1;
     public $bornZone = 'example';
+    // Тип занятости
+    public $employment = self::EMPLOYMENT_SLACKING;
+
+    const EMPLOYMENT_SLACKING = 'slacking'; // Безделье
+    const EMPLOYMENT_HUNTING = 'hunting'; // Охота
+    const EMPLOYMENT_FIGHTING = 'fighting'; // Сражение
 
     public function rip()
     {

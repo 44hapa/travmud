@@ -35,22 +35,22 @@ class Map
      * @param TravmadUser $user
      * @return boolean
      */
-    public function tryMoveUser($direction, TravmadUser $user)
+    public function tryMoveCreature($direction, CreatureAbstract $creature)
     {
         /* @var Zone $zone */
-        $zone = $this->map[$user->zone];
+        $zone = $this->map[$creature->zone];
         switch ($direction) {
             case 'север':
-                $result = $this->moveUser($user, $zone, $user->positionX, $user->positionY - 1);
+                $result = $this->moveCreature($creature, $zone, $creature->positionX, $creature->positionY - 1);
                 break;
             case 'юг':
-                $result = $this->moveUser($user, $zone, $user->positionX, $user->positionY + 1);
+                $result = $this->moveCreature($creature, $zone, $creature->positionX, $creature->positionY + 1);
                 break;
             case 'запад':
-                $result = $this->moveUser($user, $zone, $user->positionX - 1, $user->positionY);
+                $result = $this->moveCreature($creature, $zone, $creature->positionX - 1, $creature->positionY);
                 break;
             case 'восток':
-                $result = $this->moveUser($user, $zone, $user->positionX + 1, $user->positionY);
+                $result = $this->moveCreature($creature, $zone, $creature->positionX + 1, $creature->positionY);
                 break;
 
             default:
@@ -67,20 +67,20 @@ class Map
 
     /**
      *
-     * @param TravmadUser $user
+     * @param CreatureAbstract $creature
      * @param Zone $zone
      * @param int $newX
      * @param int $newY
      * @return boolean
      */
-    private function moveUser(TravmadUser $user, Zone $zone, $newX, $newY)
+    private function moveCreature(CreatureAbstract $creature, Zone $zone, $newX, $newY)
     {
         if ($this->catMove($zone, $newX, $newY)) {
-            $zone->pullCreature($user, $user->positionX, $user->positionY);
-            $zone->putCreature($user, $newX, $newY);
+            $zone->pullCreature($creature, $creature->positionX, $creature->positionY);
+            $zone->putCreature($creature, $newX, $newY);
 
-            $user->positionX = $newX;
-            $user->positionY = $newY;
+            $creature->positionX = $newX;
+            $creature->positionY = $newY;
 
             return true;
         }

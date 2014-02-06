@@ -41,7 +41,7 @@ class Zone
         } else {
             throw new Exception('Неизвестная живность');
         }
-        $this->zone[$x][$y][$creature][$creature->id] = $creature->name;
+        $this->zone[$x][$y][$creatureType][$creature->id] = $creature->name;
     }
 
     public function pullCreature(CreatureAbstract $creature, $x, $y)

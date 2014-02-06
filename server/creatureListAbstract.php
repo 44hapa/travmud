@@ -5,6 +5,7 @@ abstract class CreatureListAbstract
 
     protected $list = array();
     static private $instances;
+    static protected $id = 0;
 
     protected function __construct()
     {
@@ -22,6 +23,7 @@ abstract class CreatureListAbstract
 
     public function add(CreatureAbstract $creature)
     {
+        $creature->id = self::$id++;
         $this->list[] = $creature;
     }
 

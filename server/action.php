@@ -145,7 +145,7 @@ class Action
         $randDirection = rand(0, 3);
 
         // Если не можем убежить в данном направлении.
-        if (!$this->map->tryMoveUser($direction[$randDirection], $this->userAuthor)) {
+        if (!$this->map->tryMoveCreature($direction[$randDirection], $this->userAuthor)) {
             $response->actionType = null;
             $response->actionValue = null;
             $response->message = "Ты не можешь убежать на {$direction[$randDirection]}!!!";
@@ -269,7 +269,7 @@ class Action
         $response = new Response($this->userAuthor);
         $response->request = $this->requestWsMessage;
 
-        if (!$this->map->tryMoveUser($this->requestWsMessage, $this->userAuthor)) {
+        if (!$this->map->tryMoveCreature($this->requestWsMessage, $this->userAuthor)) {
             $response->actionType = null;
             $response->actionValue = null;
             $response->message = "Вы не можете двигаться в этом направлении";

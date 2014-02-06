@@ -133,6 +133,14 @@ $config = Config::getConfig();
                                 rpg.setEventPrepared(mobName, {x: 8, y: 13});
                                 rpg.addEventPrepared(mobName);
                             }
+
+                            // Движуха Моба
+                            if (msgObj.mob.actionType == 'move'){
+                                var mobObj = rpg.getEventByName(mobName);
+                                dataFromSocket = msgObj.mob.actionValue[mobName];
+                                mobObj.moreMove(comparingDirection[dataFromSocket],1);
+                            }
+
                         }
 
                         // Смотрим, прислал ли что какой-нибудь чар (не мы!!!)

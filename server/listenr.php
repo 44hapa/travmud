@@ -12,6 +12,7 @@ require_once(BASE_PATH . '/server/response.php');
 require_once(BASE_PATH . '/server/action.php');
 require_once(BASE_PATH . '/server/interaction.php');
 require_once(BASE_PATH . '/server/battle.php');
+require_once(BASE_PATH . '/server/mobslife.php');
 require_once(BASE_PATH . '/server/state.php');
 require_once(BASE_PATH . '/server/multicommand.php');
 
@@ -85,6 +86,10 @@ class Listener
         $battle = Battle::getInstance();
         $battle->execute();
         $this->serverMessages .= $battle->getResponseMessage();
+
+        $mobslife = Mobslife::getInstance();
+        $mobslife->execute();
+        $this->serverMessages .= $mobslife->getResponseMessage();
 
         $state = State::getInstance();
         $state->execute();

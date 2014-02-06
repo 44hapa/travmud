@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Методы взаимодействия персонажей между собой (users&mobs)
+ */
 class Interaction
 {
 
@@ -56,9 +59,11 @@ class Interaction
     {
         $this->user->enemyType = self::CHAR;
         $this->user->enemyIdent = $victim->wsId;
+        $this->user->employment = CreatureAbstract::EMPLOYMENT_FIGHTING;
 
         $victim->enemyType = self::CHAR;
         $victim->enemyIdent = $this->user->wsId;
+        $victim->employment = CreatureAbstract::EMPLOYMENT_FIGHTING;
 
         $this->battle->addFighter(self::CHAR, $this->user->wsId);
         $this->battle->addFighter(self::CHAR, $victim->wsId);
